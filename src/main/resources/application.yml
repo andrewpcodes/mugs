@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: mugs
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mugsdb
+    username:
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+server:
+  servlet:
+    context-path: /mugs/api
