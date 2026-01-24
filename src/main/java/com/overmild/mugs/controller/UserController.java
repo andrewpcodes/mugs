@@ -1,6 +1,8 @@
 package com.overmild.mugs.controller;
 
+import com.overmild.mugs.model.Mug;
 import com.overmild.mugs.model.User;
+import com.overmild.mugs.service.MugService;
 import com.overmild.mugs.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ public class UserController {
 
     private final UserService userService;
 
+    private final MugService mugService;
+
     /**
      * Retrieve all users.
      *
@@ -52,6 +56,18 @@ public class UserController {
     public ResponseEntity<User> getUserById(@RequestParam UUID id) {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(user);
+    }
+
+    /**
+     * Retrieve all mugs for a specific user by user UUID.
+     *
+     * @param userId UUID of the user whose mugs to retrieve; taken from the path variable.
+     * @return ResponseEntity containing the list of {@link Mug} objects and HTTP 200.
+     */
+    @GetMapping("/users/{userId}/mugs")
+    public ResponseEntity<List<Mug>> getMugsByUserId(@PathVariable UUID userId) {
+        List<Mug> mugs = mugService.getMugsByUserId(userId);
+        return ResponseEntity.ok(mugs);
     }
 
     /**

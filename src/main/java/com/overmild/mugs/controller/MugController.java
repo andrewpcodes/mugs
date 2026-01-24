@@ -21,31 +21,25 @@ public class MugController {
         return ResponseEntity.ok(mugs);
     }
 
-    @GetMapping("/mug/{id}")
+    @GetMapping("/mugs/{id}")
     public ResponseEntity<Mug> getMugById(@PathVariable UUID id) {
         Mug mug = mugService.getMugById(id);
         return ResponseEntity.ok(mug);
     }
 
-    @GetMapping("/user/{userId}/mugs")
-    public ResponseEntity<List<Mug>> getMugsByUserId(@PathVariable UUID userId) {
-        List<Mug> mugs = mugService.getMugsByUserId(userId);
-        return ResponseEntity.ok(mugs);
-    }
-
-    @PostMapping("/mug")
+    @PostMapping("/mugs")
     public ResponseEntity<Mug> createMug(@RequestBody Mug mug) {
         Mug createdMug = mugService.createMug(mug);
         return ResponseEntity.ok(createdMug);
     }
 
-    @PutMapping("/mug")
+    @PutMapping("/mugs")
     public ResponseEntity<Mug> updateMug(@RequestBody Mug mug) {
         Mug updatedMug = mugService.updateMug(mug);
         return ResponseEntity.ok(updatedMug);
     }
 
-    @DeleteMapping("/mug/{id}")
+    @DeleteMapping("/mugs/{id}")
     public ResponseEntity<Void> deleteMug(@PathVariable UUID id) {
         mugService.deleteMug(id);
         return ResponseEntity.ok().build();

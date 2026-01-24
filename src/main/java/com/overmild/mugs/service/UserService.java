@@ -2,6 +2,7 @@ package com.overmild.mugs.service;
 
 import com.overmild.mugs.entity.UserEntity;
 import com.overmild.mugs.mapper.UserMapper;
+import com.overmild.mugs.model.Mug;
 import com.overmild.mugs.model.User;
 import com.overmild.mugs.repository.UserRepository;
 import jakarta.transaction.Transactional;

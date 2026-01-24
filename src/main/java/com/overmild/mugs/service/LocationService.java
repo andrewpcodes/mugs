@@ -21,6 +21,7 @@ import java.util.UUID;
  * to/from domain models.</p>
  */
 @Slf4j
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class LocationService {
@@ -33,7 +34,6 @@ public class LocationService {
      *
      * @return a list of all locations in the system
      */
-    @Transactional
     public List<Location> getAllLocations() {
         log.info("Fetching all locations from the database");
         return repository.findAll()
@@ -48,7 +48,6 @@ public class LocationService {
      * @param id the UUID of the location to retrieve
      * @return the location with the specified ID, or null if not found
      */
-    @Transactional
     public Location getLocationById(UUID id) {
         log.info("Fetching location with ID: {}", id);
         return repository.findById(id)
@@ -62,7 +61,6 @@ public class LocationService {
      * @param location the location object to create
      * @return the created location with all fields populated, including generated ID
      */
-    @Transactional
     public Location createLocation(Location location) {
         log.info("Creating new location with id: {}", location.getId());
         LocationEntity entity = locationMapper.toEntity(location);
@@ -78,7 +76,6 @@ public class LocationService {
      * @param location the location object containing updated information
      * @return the updated location, or null if the location doesn't exist or ID is null
      */
-    @Transactional
     public Location updateLocation(Location location) {
         log.info("Updating location with ID: {}", location.getId());
         if (location.getId() == null || repository.findById(location.getId()).isEmpty()) {
@@ -97,7 +94,6 @@ public class LocationService {
      *
      * @param id the UUID of the location to delete
      */
-    @Transactional
     public void deleteLocation(UUID id) {
         log.info("Deleting location with ID: {}", id);
         repository.deleteById(id);

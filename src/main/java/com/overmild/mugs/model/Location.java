@@ -10,4 +10,6 @@ public class Location {
     UUID id;
     String name;
     String description;
+    Address address;
+    String photoUrl;
 }
