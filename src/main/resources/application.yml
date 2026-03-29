@@ -2,9 +2,9 @@ spring:
   application:
     name: mugs
   datasource:
-    url: jdbc:postgresql://localhost:5432/mugsdb
-    username:
-    password:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mugsdb}
+    username: ${SPRING_DATASOURCE_USERNAME:}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
   jpa:
     hibernate:
       ddl-auto: update
