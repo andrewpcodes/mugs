@@ -10,7 +10,7 @@ COPY src ./src
 RUN ./gradlew bootJar --no-daemon -x test
 
 # Stage 2: Runtime image
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY --from=builder /app/build/libs/mugs-*.jar app.jar
 EXPOSE 8080
