@@ -1,5 +1,7 @@
 package com.overmild.mugs.controller
 
+import com.overmild.mugs.exception.GlobalExceptionHandler
+import com.overmild.mugs.exception.ResourceNotFoundException
 import com.overmild.mugs.model.Location
 import com.overmild.mugs.service.LocationService
 import org.springframework.http.MediaType
@@ -15,6 +17,7 @@ class LocationControllerSpec extends Specification {
     LocationService locationService = Mock()
     MockMvc mockMvc = MockMvcBuilders
             .standaloneSetup(new LocationController(locationService))
+            .setControllerAdvice(new GlobalExceptionHandler())
             .build()
 
     def "GET /locations returns 200"() {
@@ -36,6 +39,16 @@ class LocationControllerSpec extends Specification {
                 .andExpect(status().isOk())
     }
 
+    def "GET /locations/{id} returns 404 when location not found"() {
+        given:
+        def id = UUID.randomUUID()
+        locationService.getLocationById(id) >> { throw new ResourceNotFoundException("Location not found: $id") }
+
+        expect:
+        mockMvc.perform(get("/locations/{id}", id))
+                .andExpect(status().isNotFound())
+    }
+
     def "POST /locations returns 200"() {
         given:
         locationService.createLocation(_) >> new Location(UUID.randomUUID(), "Cafe", "A nice cafe", null, null)
@@ -45,6 +58,14 @@ class LocationControllerSpec extends Specification {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content('{"name":"Cafe","description":"A nice cafe"}'))
                 .andExpect(status().isOk())
+    }
+
+    def "POST /locations returns 400 when name is missing"() {
+        expect:
+        mockMvc.perform(post("/locations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content('{"description":"A nice cafe"}'))
+                .andExpect(status().isBadRequest())
     }
 
     def "PUT /locations returns 200"() {
@@ -57,6 +78,18 @@ class LocationControllerSpec extends Specification {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content('{"id":"' + id + '","name":"Updated Cafe","description":"Updated desc"}'))
                 .andExpect(status().isOk())
+    }
+
+    def "PUT /locations returns 404 when location not found"() {
+        given:
+        def id = UUID.randomUUID()
+        locationService.updateLocation(_) >> { throw new ResourceNotFoundException("Location not found: $id") }
+
+        expect:
+        mockMvc.perform(put("/locations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content('{"id":"' + id + '","name":"Updated Cafe","description":"Updated desc"}'))
+                .andExpect(status().isNotFound())
     }
 
     def "DELETE /locations/{id} returns 200"() {

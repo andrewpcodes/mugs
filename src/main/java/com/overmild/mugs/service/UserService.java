@@ -1,8 +1,9 @@
 package com.overmild.mugs.service;
 
 import com.overmild.mugs.entity.UserEntity;
+import com.overmild.mugs.exception.ConflictException;
+import com.overmild.mugs.exception.ResourceNotFoundException;
 import com.overmild.mugs.mapper.UserMapper;
-import com.overmild.mugs.model.Mug;
 import com.overmild.mugs.model.User;
 import com.overmild.mugs.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -46,13 +47,14 @@ public class UserService {
      * Retrieves a user by their unique identifier.
      *
      * @param id the UUID of the user to retrieve
-     * @return the user with the specified ID, or null if not found
+     * @return the user with the specified ID
+     * @throws ResourceNotFoundException if no user with the given ID exists
      */
     public User getUserById(UUID id) {
         log.info("Fetching user with ID: {}", id);
         return repository.findById(id)
                 .map(userMapper::toModel)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
     }
 
     /**
@@ -60,9 +62,13 @@ public class UserService {
      *
      * @param user the user object to create
      * @return the created user with all fields populated, including generated ID
+     * @throws ConflictException if a user with the same email already exists
      */
     public User createUser(User user) {
         log.info("Creating new user with id");
+        if (repository.existsByEmail(user.getEmail())) {
+            throw new ConflictException("A user with email '" + user.getEmail() + "' already exists");
+        }
         UserEntity entity = userMapper.toEntity(user);
         return userMapper.toModel(repository.save(entity));
     }
@@ -70,17 +76,21 @@ public class UserService {
     /**
      * Updates an existing user in the database.
      *
-     * <p>This method will update all fields of the user. If the user does not exist
-     * or has a null ID, the update will fail and return null.</p>
+     * <p>All fields of the user are updated. The user must exist and have a non-null ID.</p>
      *
      * @param user the user object containing updated information
-     * @return the updated user, or null if the user doesn't exist or ID is null
+     * @return the updated user
+     * @throws ResourceNotFoundException if the user doesn't exist or ID is null
+     * @throws ConflictException if another user already has the same email
      */
     @Transactional
     public User updateUser(User user) {
         log.info("Updating user with ID: {}", user.getId());
         if (user.getId() == null || repository.findById(user.getId()).isEmpty()) {
-            return null;
+            throw new ResourceNotFoundException("User not found: " + user.getId());
+        }
+        if (repository.existsByEmailAndIdNot(user.getEmail(), user.getId())) {
+            throw new ConflictException("A user with email '" + user.getEmail() + "' already exists");
         }
         var entity = userMapper.toEntity(user);
         var updatedEntity = repository.save(entity);

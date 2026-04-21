@@ -1,6 +1,7 @@
 package com.overmild.mugs.service;
 
 import com.overmild.mugs.entity.MugEntity;
+import com.overmild.mugs.exception.ResourceNotFoundException;
 import com.overmild.mugs.mapper.MugMapper;
 import com.overmild.mugs.model.Mug;
 import com.overmild.mugs.repository.MugRepository;
@@ -46,14 +47,15 @@ public class MugService {
      * Retrieves a mug by its unique identifier.
      *
      * @param id the UUID of the mug to retrieve
-     * @return the mug with the specified ID, or null if not found
+     * @return the mug with the specified ID
+     * @throws ResourceNotFoundException if no mug with the given ID exists
      */
     @Transactional
     public Mug getMugById(UUID id) {
         log.info("Fetching mug with ID: {}", id);
         return repository.findById(id)
                 .map(mugMapper::toModel)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("Mug not found: " + id));
     }
 
     /**
@@ -87,16 +89,16 @@ public class MugService {
     /**
      * Updates an existing mug in the database.
      *
-     * <p>This method will update all fields of the mug. If the mug does not exist
-     * or has a null ID, the update will fail and return null.</p>
+     * <p>All fields of the mug are updated. The mug must exist and have a non-null ID.</p>
      *
      * @param mug the mug object containing updated information
-     * @return the updated mug, or null if the mug doesn't exist or ID is null
+     * @return the updated mug
+     * @throws ResourceNotFoundException if the mug doesn't exist or ID is null
      */
     public Mug updateMug(Mug mug) {
         log.info("Updating mug with ID: {}", mug.getId());
         if (mug.getId() == null || repository.findById(mug.getId()).isEmpty()) {
-            return null;
+            throw new ResourceNotFoundException("Mug not found: " + mug.getId());
         }
         var entity = mugMapper.toEntity(mug);
         var updatedEntity = repository.save(entity);

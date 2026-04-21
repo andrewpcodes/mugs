@@ -63,16 +63,16 @@ class LocationServiceSpec extends Specification {
         result.address.line1 == "2 Oak Ave"
     }
 
-    def "getLocationById returns null when not found"() {
+    def "getLocationById throws ResourceNotFoundException when not found"() {
         given:
         def id = UUID.randomUUID()
         repository.findById(id) >> Optional.empty()
 
         when:
-        Location result = service.getLocationById(id)
+        service.getLocationById(id)
 
         then:
-        result == null
+        thrown(com.overmild.mugs.exception.ResourceNotFoundException)
     }
 
     def "updateLocation persists updated address and photoUrl"() {
@@ -99,28 +99,28 @@ class LocationServiceSpec extends Specification {
         result.address.line1 == "3 Elm St"
     }
 
-    def "updateLocation returns null when location does not exist"() {
+    def "updateLocation throws ResourceNotFoundException when location does not exist"() {
         given:
         def id = UUID.randomUUID()
         def location = new Location(id, "Ghost Cafe", null, null, null)
         repository.findById(id) >> Optional.empty()
 
         when:
-        Location result = service.updateLocation(location)
+        service.updateLocation(location)
 
         then:
-        result == null
+        thrown(com.overmild.mugs.exception.ResourceNotFoundException)
     }
 
-    def "updateLocation returns null when id is null"() {
+    def "updateLocation throws ResourceNotFoundException when id is null"() {
         given:
         def location = new Location(null, "No ID Cafe", null, null, null)
 
         when:
-        Location result = service.updateLocation(location)
+        service.updateLocation(location)
 
         then:
-        result == null
-        0 * repository._
+        thrown(com.overmild.mugs.exception.ResourceNotFoundException)
+        0 * repository.save(_)
     }
 }

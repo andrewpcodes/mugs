@@ -24,4 +24,8 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
            "LEFT JOIN FETCH m.location " +
            "WHERE u.id = :id")
     Optional<UserEntity> findByIdWithMugsAndLocations(@Param("id") UUID id);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByEmailAndIdNot(String email, UUID id);
 }

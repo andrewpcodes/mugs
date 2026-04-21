@@ -1,6 +1,7 @@
 package com.overmild.mugs.service;
 
 import com.overmild.mugs.entity.LocationEntity;
+import com.overmild.mugs.exception.ResourceNotFoundException;
 import com.overmild.mugs.mapper.LocationMapper;
 import com.overmild.mugs.model.Location;
 import com.overmild.mugs.repository.LocationRepository;
@@ -46,13 +47,14 @@ public class LocationService {
      * Retrieves a location by its unique identifier.
      *
      * @param id the UUID of the location to retrieve
-     * @return the location with the specified ID, or null if not found
+     * @return the location with the specified ID
+     * @throws ResourceNotFoundException if no location with the given ID exists
      */
     public Location getLocationById(UUID id) {
         log.info("Fetching location with ID: {}", id);
         return repository.findById(id)
                 .map(locationMapper::toModel)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("Location not found: " + id));
     }
 
     /**
@@ -70,16 +72,16 @@ public class LocationService {
     /**
      * Updates an existing location in the database.
      *
-     * <p>This method will update all fields of the location. If the location does not exist
-     * or has a null ID, the update will fail and return null.</p>
+     * <p>All fields of the location are updated. The location must exist and have a non-null ID.</p>
      *
      * @param location the location object containing updated information
-     * @return the updated location, or null if the location doesn't exist or ID is null
+     * @return the updated location
+     * @throws ResourceNotFoundException if the location doesn't exist or ID is null
      */
     public Location updateLocation(Location location) {
         log.info("Updating location with ID: {}", location.getId());
         if (location.getId() == null || repository.findById(location.getId()).isEmpty()) {
-            return null;
+            throw new ResourceNotFoundException("Location not found: " + location.getId());
         }
         var entity = locationMapper.toEntity(location);
         var updatedEntity = repository.save(entity);
