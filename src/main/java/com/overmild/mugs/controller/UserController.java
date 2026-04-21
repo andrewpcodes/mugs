@@ -4,6 +4,7 @@ import com.overmild.mugs.model.Mug;
 import com.overmild.mugs.model.User;
 import com.overmild.mugs.service.MugService;
 import com.overmild.mugs.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -76,7 +77,7 @@ public class UserController {
      * @return ResponseEntity containing the created {@link User} and HTTP 200.
      */
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         User createdUser = userService.createUser(user);
         return ResponseEntity.ok(createdUser);
     }
@@ -88,7 +89,7 @@ public class UserController {
      * @return ResponseEntity containing the updated {@link User} and HTTP 200.
      */
     @PutMapping("/users")
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
+    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
         User updatedUser = userService.updateUser(user);
         return ResponseEntity.ok(updatedUser);
     }

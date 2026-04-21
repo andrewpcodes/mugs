@@ -2,6 +2,7 @@ package com.overmild.mugs.controller;
 
 import com.overmild.mugs.model.Location;
 import com.overmild.mugs.service.LocationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -59,7 +60,7 @@ public class LocationController {
      * @return ResponseEntity containing the created {@link Location} and HTTP 200.
      */
     @PostMapping("/locations")
-    public ResponseEntity<Location> createLocation(@RequestBody Location location) {
+    public ResponseEntity<Location> createLocation(@Valid @RequestBody Location location) {
         Location createdLocation = locationService.createLocation(location);
         return ResponseEntity.ok(createdLocation);
     }
@@ -71,7 +72,7 @@ public class LocationController {
      * @return ResponseEntity containing the updated {@link Location} and HTTP 200.
      */
     @PutMapping("/locations")
-    public ResponseEntity<Location> updateLocation(@RequestBody Location location) {
+    public ResponseEntity<Location> updateLocation(@Valid @RequestBody Location location) {
         Location updatedLocation = locationService.updateLocation(location);
         return ResponseEntity.ok(updatedLocation);
     }

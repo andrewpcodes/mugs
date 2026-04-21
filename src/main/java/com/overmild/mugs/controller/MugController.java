@@ -2,6 +2,7 @@ package com.overmild.mugs.controller;
 
 import com.overmild.mugs.model.Mug;
 import com.overmild.mugs.service.MugService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,13 +29,13 @@ public class MugController {
     }
 
     @PostMapping("/mugs")
-    public ResponseEntity<Mug> createMug(@RequestBody Mug mug) {
+    public ResponseEntity<Mug> createMug(@Valid @RequestBody Mug mug) {
         Mug createdMug = mugService.createMug(mug);
         return ResponseEntity.ok(createdMug);
     }
 
     @PutMapping("/mugs")
-    public ResponseEntity<Mug> updateMug(@RequestBody Mug mug) {
+    public ResponseEntity<Mug> updateMug(@Valid @RequestBody Mug mug) {
         Mug updatedMug = mugService.updateMug(mug);
         return ResponseEntity.ok(updatedMug);
     }

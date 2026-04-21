@@ -1,5 +1,8 @@
 package com.overmild.mugs.controller
 
+import com.overmild.mugs.exception.ConflictException
+import com.overmild.mugs.exception.GlobalExceptionHandler
+import com.overmild.mugs.exception.ResourceNotFoundException
 import com.overmild.mugs.model.Mug
 import com.overmild.mugs.model.User
 import com.overmild.mugs.service.MugService
@@ -18,6 +21,7 @@ class UserControllerSpec extends Specification {
     MugService mugService = Mock()
     MockMvc mockMvc = MockMvcBuilders
             .standaloneSetup(new UserController(userService, mugService))
+            .setControllerAdvice(new GlobalExceptionHandler())
             .build()
 
     def "GET /users returns 200"() {
@@ -37,6 +41,16 @@ class UserControllerSpec extends Specification {
         expect:
         mockMvc.perform(get("/users/{id}", id))
                 .andExpect(status().isOk())
+    }
+
+    def "GET /users/{id} returns 404 when user not found"() {
+        given:
+        def id = UUID.randomUUID()
+        userService.getUserById(id) >> { throw new ResourceNotFoundException("User not found: $id") }
+
+        expect:
+        mockMvc.perform(get("/users/{id}", id))
+                .andExpect(status().isNotFound())
     }
 
     def "GET /users/{userId}/mugs returns 200"() {
@@ -60,6 +74,33 @@ class UserControllerSpec extends Specification {
                 .andExpect(status().isOk())
     }
 
+    def "POST /users returns 400 when required fields are missing"() {
+        expect:
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content('{"lastName":"Doe","email":"john@example.com"}'))
+                .andExpect(status().isBadRequest())
+    }
+
+    def "POST /users returns 400 when email is invalid"() {
+        expect:
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content('{"firstName":"John","lastName":"Doe","email":"not-an-email"}'))
+                .andExpect(status().isBadRequest())
+    }
+
+    def "POST /users returns 409 when email already exists"() {
+        given:
+        userService.createUser(_) >> { throw new ConflictException("A user with email 'john@example.com' already exists") }
+
+        expect:
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content('{"firstName":"John","lastName":"Doe","email":"john@example.com"}'))
+                .andExpect(status().isConflict())
+    }
+
     def "PUT /users returns 200"() {
         given:
         def id = UUID.randomUUID()
@@ -70,6 +111,30 @@ class UserControllerSpec extends Specification {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content('{"id":"' + id + '","firstName":"Jane","lastName":"Doe","email":"jane@example.com"}'))
                 .andExpect(status().isOk())
+    }
+
+    def "PUT /users returns 404 when user not found"() {
+        given:
+        def id = UUID.randomUUID()
+        userService.updateUser(_) >> { throw new ResourceNotFoundException("User not found: $id") }
+
+        expect:
+        mockMvc.perform(put("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content('{"id":"' + id + '","firstName":"Jane","lastName":"Doe","email":"jane@example.com"}'))
+                .andExpect(status().isNotFound())
+    }
+
+    def "PUT /users returns 409 when email already taken by another user"() {
+        given:
+        def id = UUID.randomUUID()
+        userService.updateUser(_) >> { throw new ConflictException("A user with email 'jane@example.com' already exists") }
+
+        expect:
+        mockMvc.perform(put("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content('{"id":"' + id + '","firstName":"Jane","lastName":"Doe","email":"jane@example.com"}'))
+                .andExpect(status().isConflict())
     }
 
     def "DELETE /users/{id} returns 200"() {
