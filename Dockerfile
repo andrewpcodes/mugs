@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM gradle:8.13-jdk21 AS builder
+FROM gradle:9.4-jdk21 AS builder
 WORKDIR /app
 COPY gradlew gradlew.bat settings.gradle build.gradle gradle.properties ./
 COPY gradle ./gradle
