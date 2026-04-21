@@ -67,21 +67,47 @@ All endpoints are prefixed with `/mugs/api`.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/users` | Retrieve all users |
-| GET | `/user/{id}` | Retrieve a specific user by ID (query param) |
-| POST | `/user/create` | Create a new user |
-| PATCH | `/user/update` | Update an existing user |
-| DELETE | `/user/delete/{id}` | Delete a user by ID |
+| GET | `/users/{id}` | Retrieve a specific user by ID |
+| GET | `/users/{userId}/mugs` | Retrieve all mugs for a specific user |
+| POST | `/users` | Create a new user |
+| PUT | `/users` | Update an existing user |
+| DELETE | `/users/{id}` | Delete a user by ID |
+
+### Mug Management
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/mugs` | Retrieve all mugs |
+| GET | `/mugs/{id}` | Retrieve a specific mug by ID |
+| POST | `/mugs` | Create a new mug |
+| PUT | `/mugs` | Update an existing mug |
+| DELETE | `/mugs/{id}` | Delete a mug by ID |
+
+### Location Management
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/locations` | Retrieve all locations |
+| GET | `/locations/{id}` | Retrieve a specific location by ID |
+| POST | `/locations` | Create a new location |
+| PUT | `/locations` | Update an existing location |
+| DELETE | `/locations/{id}` | Delete a location by ID |
 
 ### Example Requests
 
 **Get All Users:**
 ```bash
-curl http://localhost:8080/mugs/api/users
+curl http://localhost:8080/users
+```
+
+**Get User by ID:**
+```bash
+curl http://localhost:8080/users/550e8400-e29b-41d4-a716-446655440000
 ```
 
 **Create User:**
 ```bash
-curl -X POST http://localhost:8080/mugs/api/user/create \
+curl -X POST http://localhost:8080/users \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "John",
@@ -90,14 +116,9 @@ curl -X POST http://localhost:8080/mugs/api/user/create \
   }'
 ```
 
-**Get User by ID:**
-```bash
-curl "http://localhost:8080/mugs/api/user/{id}?id=550e8400-e29b-41d4-a716-446655440000"
-```
-
 **Update User:**
 ```bash
-curl -X PATCH http://localhost:8080/mugs/api/user/update \
+curl -X PUT http://localhost:8080/users \
   -H "Content-Type: application/json" \
   -d '{
     "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -109,7 +130,7 @@ curl -X PATCH http://localhost:8080/mugs/api/user/update \
 
 **Delete User:**
 ```bash
-curl -X DELETE http://localhost:8080/mugs/api/user/delete/550e8400-e29b-41d4-a716-446655440000
+curl -X DELETE http://localhost:8080/users/550e8400-e29b-41d4-a716-446655440000
 ```
 
 ## Project Structure
