@@ -25,6 +25,12 @@ public class LocationEntity {
     @EqualsAndHashCode.Include
     private String description;
 
+    @Embedded
+    private AddressEmbeddable address;
+
+    @Column(name = "photo_url")
+    private String photoUrl;
+
     @OneToMany(mappedBy = "location", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<MugEntity> mugs;
 
