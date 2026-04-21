@@ -1,6 +1,8 @@
 package com.overmild.mugs.mapper;
 
+import com.overmild.mugs.entity.AddressEmbeddable;
 import com.overmild.mugs.entity.LocationEntity;
+import com.overmild.mugs.model.Address;
 import com.overmild.mugs.model.Location;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,5 +15,9 @@ public interface LocationMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "modifiedAt", ignore = true)
     LocationEntity toEntity(Location model);
+
+    Address toAddress(AddressEmbeddable embeddable);
+
+    AddressEmbeddable toAddressEmbeddable(Address address);
 }
 
