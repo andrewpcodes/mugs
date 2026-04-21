@@ -121,6 +121,6 @@ class LocationServiceSpec extends Specification {
 
         then:
         thrown(com.overmild.mugs.exception.ResourceNotFoundException)
-        0 * repository.save(_)
+        0 * repository._
     }
 }
