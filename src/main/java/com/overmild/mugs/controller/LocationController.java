@@ -21,25 +21,25 @@ public class LocationController {
         return ResponseEntity.ok(locations);
     }
 
-    @GetMapping("/location/{id}")
+    @GetMapping("/locations/{id}")
     public ResponseEntity<Location> getLocationById(@PathVariable UUID id) {
         Location location = locationService.getLocationById(id);
         return ResponseEntity.ok(location);
     }
 
-    @PostMapping("/location")
+    @PostMapping("/locations")
     public ResponseEntity<Location> createLocation(@RequestBody Location location) {
         Location createdLocation = locationService.createLocation(location);
         return ResponseEntity.ok(createdLocation);
     }
 
-    @PutMapping("/location")
+    @PutMapping("/locations")
     public ResponseEntity<Location> updateLocation(@RequestBody Location location) {
         Location updatedLocation = locationService.updateLocation(location);
         return ResponseEntity.ok(updatedLocation);
     }
 
-    @DeleteMapping("/location/{id}")
+    @DeleteMapping("/locations/{id}")
     public ResponseEntity<Void> deleteLocation(@PathVariable UUID id) {
         locationService.deleteLocation(id);
         return ResponseEntity.ok().build();

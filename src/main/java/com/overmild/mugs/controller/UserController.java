@@ -16,11 +16,12 @@ import java.util.UUID;
  *
  * <p>Endpoints:
  * <ul>
- *   <li>GET  /users - list all users</li>
- *   <li>GET  /user/{id} - get a user by id</li>
- *   <li>POST /user/create - create a new user</li>
- *   <li>PATCH /user/update - update an existing user</li>
- *   <li>DELETE /user/delete/{id} - delete a user by id</li>
+ *   <li>GET    /users          - list all users</li>
+ *   <li>GET    /users/{id}     - get a user by id</li>
+ *   <li>GET    /users/{userId}/mugs - list all mugs for a user</li>
+ *   <li>POST   /users          - create a new user</li>
+ *   <li>PUT    /users          - update an existing user</li>
+ *   <li>DELETE /users/{id}     - delete a user by id</li>
  * </ul>
  *
  * The controller delegates business logic to {@link UserService}.
@@ -46,14 +47,12 @@ public class UserController {
 
     /**
      * Retrieve a single user by UUID.
-     * <p>
-     * Note: the mapping declares the id as a path segment (\"/user/{id}\").
      *
-     * @param id UUID of the user to retrieve; corresponds to the path variable \"id\".
+     * @param id UUID of the user to retrieve; taken from the path variable "id".
      * @return ResponseEntity containing the requested {@link User} and HTTP 200.
      */
-    @GetMapping("/user/{id}")
-    public ResponseEntity<User> getUserById(@RequestParam UUID id) {
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
@@ -76,7 +75,7 @@ public class UserController {
      * @param user User object deserialized from the request body.
      * @return ResponseEntity containing the created {@link User} and HTTP 200.
      */
-    @PostMapping("/user")
+    @PostMapping("/users")
     public ResponseEntity<User> createUser(@RequestBody User user) {
         User createdUser = userService.createUser(user);
         return ResponseEntity.ok(createdUser);
@@ -88,7 +87,7 @@ public class UserController {
      * @param user User object containing updated fields deserialized from the request body.
      * @return ResponseEntity containing the updated {@link User} and HTTP 200.
      */
-    @PutMapping("/user")
+    @PutMapping("/users")
     public ResponseEntity<User> updateUser(@RequestBody User user) {
         User updatedUser = userService.updateUser(user);
         return ResponseEntity.ok(updatedUser);
@@ -100,7 +99,7 @@ public class UserController {
      * @param id UUID of the user to delete; taken from the path variable.
      * @return ResponseEntity with HTTP 200 and empty body on successful deletion.
      */
-    @DeleteMapping("/user/{id}")
+    @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.ok().build();
