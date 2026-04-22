@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Data
 @Entity(name = "app_user")
+@Table(name = "app_user")
 public class AppUserEntity {
 
     @Id
