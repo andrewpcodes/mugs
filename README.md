@@ -62,36 +62,42 @@ The application will start on `http://localhost:8080/mugs/api`
 
 All endpoints are prefixed with `/mugs/api`.
 
+### Authentication
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/auth/register` | Register a new USER-role account | No |
+
 ### User Management
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/users` | Retrieve all users |
-| GET | `/users/{id}` | Retrieve a specific user by ID |
-| GET | `/users/{userId}/mugs` | Retrieve all mugs for a specific user |
-| POST | `/users` | Create a new user |
-| PUT | `/users` | Update an existing user |
-| DELETE | `/users/{id}` | Delete a user by ID |
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/users` | Retrieve all users | No |
+| GET | `/users/{id}` | Retrieve a specific user by ID | No |
+| GET | `/users/{userId}/mugs` | Retrieve all mugs for a specific user | No |
+| POST | `/users` | Create a new user | ADMIN |
+| PUT | `/users` | Update an existing user | ADMIN |
+| DELETE | `/users/{id}` | Delete a user by ID | ADMIN |
 
 ### Mug Management
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/mugs` | Retrieve all mugs |
-| GET | `/mugs/{id}` | Retrieve a specific mug by ID |
-| POST | `/mugs` | Create a new mug |
-| PUT | `/mugs` | Update an existing mug |
-| DELETE | `/mugs/{id}` | Delete a mug by ID |
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/mugs` | Retrieve all mugs | No |
+| GET | `/mugs/{id}` | Retrieve a specific mug by ID | No |
+| POST | `/mugs` | Create a new mug | ADMIN |
+| PUT | `/mugs` | Update an existing mug | ADMIN |
+| DELETE | `/mugs/{id}` | Delete a mug by ID | ADMIN |
 
 ### Location Management
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/locations` | Retrieve all locations |
-| GET | `/locations/{id}` | Retrieve a specific location by ID |
-| POST | `/locations` | Create a new location |
-| PUT | `/locations` | Update an existing location |
-| DELETE | `/locations/{id}` | Delete a location by ID |
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/locations` | Retrieve all locations | No |
+| GET | `/locations/{id}` | Retrieve a specific location by ID | No |
+| POST | `/locations` | Create a new location | ADMIN |
+| PUT | `/locations` | Update an existing location | ADMIN |
+| DELETE | `/locations/{id}` | Delete a location by ID | ADMIN |
 
 ### Example Requests
 
@@ -100,14 +106,27 @@ All endpoints are prefixed with `/mugs/api`.
 curl http://localhost:8080/users
 ```
 
-**Get User by ID:**
+**Register an application user:**
 ```bash
-curl http://localhost:8080/users/550e8400-e29b-41d4-a716-446655440000
+curl -X POST http://localhost:8080/mugs/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"s3cr3t"}'
 ```
 
-**Create User:**
+**Get All Users (public):**
 ```bash
-curl -X POST http://localhost:8080/users \
+curl http://localhost:8080/mugs/api/users
+```
+
+**Get User by ID (public):**
+```bash
+curl http://localhost:8080/mugs/api/users/550e8400-e29b-41d4-a716-446655440000
+```
+
+**Create User (ADMIN required):**
+```bash
+curl -X POST http://localhost:8080/mugs/api/users \
+  -u admin:adminpassword \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "John",
@@ -116,9 +135,10 @@ curl -X POST http://localhost:8080/users \
   }'
 ```
 
-**Update User:**
+**Update User (ADMIN required):**
 ```bash
-curl -X PUT http://localhost:8080/users \
+curl -X PUT http://localhost:8080/mugs/api/users \
+  -u admin:adminpassword \
   -H "Content-Type: application/json" \
   -d '{
     "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -128,9 +148,10 @@ curl -X PUT http://localhost:8080/users \
   }'
 ```
 
-**Delete User:**
+**Delete User (ADMIN required):**
 ```bash
-curl -X DELETE http://localhost:8080/users/550e8400-e29b-41d4-a716-446655440000
+curl -X DELETE http://localhost:8080/mugs/api/users/550e8400-e29b-41d4-a716-446655440000 \
+  -u admin:adminpassword
 ```
 
 ## Project Structure
@@ -186,20 +207,58 @@ Client Request → Controller → Service → Repository → Database
 
 ## Security Configuration
 
-The application is configured with **Spring Security** but allows **unauthenticated access** to all endpoints in development:
+The application uses **HTTP Basic Authentication** backed by a dedicated `app_user` database table.
+Passwords are stored as **BCrypt** hashes. Sessions are stateless; credentials must be supplied on every protected request.
 
-- All endpoints are publicly accessible by default
-- CSRF protection is disabled (suitable for API development)
-- Method-level security (`@PreAuthorize`, `@Secured`, `@RolesAllowed`) is enabled for future use
+### Roles
 
-To secure specific endpoints, add annotations to controller methods:
+| Role | Permissions |
+|------|-------------|
+| `USER` | Read-only access to public GET endpoints |
+| `ADMIN` | Full access — can create, update, and delete all resources |
 
-```java
-@PreAuthorize("hasRole('ADMIN')")
-public ResponseEntity<User> createUser(@RequestBody User user) {
-    // Only accessible to ADMIN role
-}
-```
+### Authorization rules
+
+| Method | Endpoint pattern | Required role |
+|--------|-----------------|---------------|
+| GET | `/**` | None (public) |
+| POST | `/auth/register` | None (public) |
+| POST, PUT, DELETE | `/**` | `ADMIN` |
+
+### Authentication flow
+
+1. **Register** a new account (receives the `USER` role):
+   ```bash
+   curl -X POST http://localhost:8080/mugs/api/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{"username":"alice","password":"s3cr3t"}'
+   ```
+
+2. **Call a protected endpoint** by supplying HTTP Basic credentials:
+   ```bash
+   curl -X POST http://localhost:8080/mugs/api/users \
+     -u admin:adminpassword \
+     -H "Content-Type: application/json" \
+     -d '{"firstName":"John","lastName":"Doe","email":"john@example.com"}'
+   ```
+   Unauthenticated requests to protected endpoints receive **401 Unauthorized**.
+   Authenticated requests with an insufficient role receive **403 Forbidden**.
+
+3. **Bootstrap an ADMIN account** by inserting a row directly into the `app_user` table
+   (role = `ADMIN`, password must be a BCrypt hash):
+   ```sql
+   INSERT INTO app_user (id, username, password, role)
+   VALUES (gen_random_uuid(),
+           'admin',
+           '$2a$12$<bcrypt-hash-of-your-password>',
+           'ADMIN');
+   ```
+   Use a tool such as [bcrypt-generator.com](https://bcrypt-generator.com/) or `htpasswd -bnBC 12 "" yourpassword | tr -d ':\n'` to generate the hash.
+
+### Additional security notes
+
+- CSRF protection is disabled (stateless REST API).
+- Use HTTPS in production to protect Basic Auth credentials in transit.
 
 ## Development
 
@@ -260,12 +319,12 @@ The application uses **Hibernate DDL auto-update** mode (`ddl-auto: update`), wh
 
 ## Future Enhancements
 
-- [ ] Add authentication and authorization
+- [x] Add authentication and authorization
 - [ ] Implement pagination for user listing
 - [ ] Add comprehensive input validation
 - [ ] Create custom exception handling with proper error responses
 - [ ] Add API documentation (Swagger/OpenAPI)
-- [ ] Implement user roles and permissions
+- [x] Implement user roles and permissions
 - [ ] Add integration tests
 - [ ] Add database migrations (Flyway/Liquibase)
 - [ ] Implement caching (Redis)
