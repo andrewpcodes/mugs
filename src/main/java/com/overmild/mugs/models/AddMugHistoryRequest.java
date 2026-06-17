@@ -1,4 +1,4 @@
-package com.overmild.mugs.model;
+package com.overmild.mugs.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

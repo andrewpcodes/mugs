@@ -1,7 +1,7 @@
 package com.overmild.mugs.repositories;
 
-import com.overmild.mugs.model.Mug;
-import com.overmild.mugs.model.MugHistoryEntry;
+import com.overmild.mugs.models.Mug;
+import com.overmild.mugs.models.MugHistoryEntry;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;

@@ -1,6 +1,6 @@
 package com.overmild.mugs.controllers;
 
-import com.overmild.mugs.model.*;
+import com.overmild.mugs.models.*;
 import com.overmild.mugs.services.MugService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;

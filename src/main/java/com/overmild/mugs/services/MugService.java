@@ -1,7 +1,7 @@
 package com.overmild.mugs.services;
 
-import com.overmild.mugs.model.Mug;
-import com.overmild.mugs.model.MugHistoryEntry;
+import com.overmild.mugs.models.Mug;
+import com.overmild.mugs.models.MugHistoryEntry;
 import com.overmild.mugs.repositories.MugRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

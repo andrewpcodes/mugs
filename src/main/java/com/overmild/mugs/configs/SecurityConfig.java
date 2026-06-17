@@ -1,4 +1,4 @@
-package com.overmild.mugs.config;
+package com.overmild.mugs.configs;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

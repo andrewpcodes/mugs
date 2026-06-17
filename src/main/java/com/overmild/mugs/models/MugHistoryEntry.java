@@ -1,4 +1,4 @@
-package com.overmild.mugs.model;
+package com.overmild.mugs.models;
 
 import java.time.Instant;
 
