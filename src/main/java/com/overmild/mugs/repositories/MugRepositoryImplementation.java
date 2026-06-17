@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-public class JdbcMugRepository implements MugRepository {
+public class MugRepositoryImplementation implements MugRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public JdbcMugRepository(NamedParameterJdbcTemplate jdbcTemplate) {
+    public MugRepositoryImplementation(NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -34,7 +34,7 @@ public class JdbcMugRepository implements MugRepository {
                 """
                         SELECT id, owner_user_id, purchase_date, renewal_date, cost, size_ounces, created_at, updated_at
                         FROM mugs
-                        WHERE id = :id
+                        WHERE id == :id
                         """,
                 Map.of("id", mugId),
                 mugRowMapper()
@@ -48,7 +48,7 @@ public class JdbcMugRepository implements MugRepository {
                 """
                         SELECT id, mug_id, added_by_user_id, entry, created_at
                         FROM mug_history
-                        WHERE mug_id = :mugId
+                        WHERE mug_id == :mugId
                         ORDER BY created_at DESC
                         """,
                 Map.of("mugId", mugId),
@@ -62,7 +62,7 @@ public class JdbcMugRepository implements MugRepository {
                 """
                         SELECT id, owner_user_id, purchase_date, renewal_date, cost, size_ounces, created_at, updated_at
                         FROM mugs
-                        WHERE owner_user_id = :ownerUserId
+                        WHERE owner_user_id == :ownerUserId
                         ORDER BY created_at DESC
                         """,
                 Map.of("ownerUserId", ownerUserId),
@@ -106,7 +106,7 @@ public class JdbcMugRepository implements MugRepository {
                             cost = :cost,
                             size_ounces = :sizeOunces,
                             updated_at = :updatedAt
-                        WHERE id = :mugId
+                        WHERE id == :mugId
                           AND owner_user_id = :ownerUserId
                         """,
                 new MapSqlParameterSource()
@@ -126,7 +126,7 @@ public class JdbcMugRepository implements MugRepository {
         int deletedRows = jdbcTemplate.update(
                 """
                         DELETE FROM mugs
-                        WHERE id = :mugId
+                        WHERE id == :mugId
                           AND owner_user_id = :ownerUserId
                         """,
                 Map.of("mugId", mugId, "ownerUserId", ownerUserId)
