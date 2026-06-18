@@ -1,10 +1,10 @@
-package com.overmild.mugs.models;
+package com.overmild.mugs.models.entities;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
-public record Mug(
+public record MugEntity(
         String id,
         String ownerUserId,
         LocalDate purchaseDate,

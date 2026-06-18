@@ -1,7 +1,7 @@
 package com.overmild.mugs.repositories;
 
-import com.overmild.mugs.models.Mug;
-import com.overmild.mugs.models.MugHistoryEntry;
+import com.overmild.mugs.models.entities.MugEntity;
+import com.overmild.mugs.models.entities.MugHistoryEntity;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -29,8 +29,8 @@ public class MugRepositoryImplementation implements MugRepository {
     }
 
     @Override
-    public Optional<Mug> findById(String mugId) {
-        List<Mug> mugs = jdbcTemplate.query(
+    public Optional<MugEntity> findById(String mugId) {
+        List<MugEntity> mugEntities = jdbcTemplate.query(
                 """
                         SELECT id, owner_user_id, purchase_date, renewal_date, cost, size_ounces, created_at, updated_at
                         FROM mugs
@@ -39,11 +39,11 @@ public class MugRepositoryImplementation implements MugRepository {
                 Map.of("id", mugId),
                 mugRowMapper()
         );
-        return mugs.stream().findFirst();
+        return mugEntities.stream().findFirst();
     }
 
     @Override
-    public List<MugHistoryEntry> findHistoryByMugId(String mugId) {
+    public List<MugHistoryEntity> findHistoryByMugId(String mugId) {
         return jdbcTemplate.query(
                 """
                         SELECT id, mug_id, added_by_user_id, entry, created_at
@@ -57,7 +57,7 @@ public class MugRepositoryImplementation implements MugRepository {
     }
 
     @Override
-    public List<Mug> findByOwnerUserId(String ownerUserId) {
+    public List<MugEntity> findByOwnerUserId(String ownerUserId) {
         return jdbcTemplate.query(
                 """
                         SELECT id, owner_user_id, purchase_date, renewal_date, cost, size_ounces, created_at, updated_at
@@ -71,26 +71,26 @@ public class MugRepositoryImplementation implements MugRepository {
     }
 
     @Override
-    public void createMug(Mug mug) {
+    public void createMug(MugEntity mugEntity) {
         jdbcTemplate.update(
                 """
                         INSERT INTO mugs (id, owner_user_id, purchase_date, renewal_date, cost, size_ounces, created_at, updated_at)
                         VALUES (:id, :ownerUserId, :purchaseDate, :renewalDate, :cost, :sizeOunces, :createdAt, :updatedAt)
                         """,
                 new MapSqlParameterSource()
-                        .addValue("id", mug.id())
-                        .addValue("ownerUserId", mug.ownerUserId())
-                        .addValue("purchaseDate", mug.purchaseDate().toString())
-                        .addValue("renewalDate", mug.renewalDate().toString())
-                        .addValue("cost", mug.cost())
-                        .addValue("sizeOunces", mug.sizeOunces())
-                        .addValue("createdAt", mug.createdAt().toString())
-                        .addValue("updatedAt", mug.updatedAt().toString())
+                        .addValue("id", mugEntity.id())
+                        .addValue("ownerUserId", mugEntity.ownerUserId())
+                        .addValue("purchaseDate", mugEntity.purchaseDate().toString())
+                        .addValue("renewalDate", mugEntity.renewalDate().toString())
+                        .addValue("cost", mugEntity.cost())
+                        .addValue("sizeOunces", mugEntity.sizeOunces())
+                        .addValue("createdAt", mugEntity.createdAt().toString())
+                        .addValue("updatedAt", mugEntity.updatedAt().toString())
         );
     }
 
     @Override
-    public boolean updateMugByOwner(
+    public Optional<MugEntity> updateMugByOwner(
             String mugId,
             String ownerUserId,
             LocalDate purchaseDate,
@@ -118,7 +118,7 @@ public class MugRepositoryImplementation implements MugRepository {
                         .addValue("sizeOunces", sizeOunces)
                         .addValue("updatedAt", Instant.now().toString())
         );
-        return updatedRows > 0;
+        return updatedRows > 0 ? findById(mugId) : Optional.empty();
     }
 
     @Override
@@ -135,7 +135,7 @@ public class MugRepositoryImplementation implements MugRepository {
     }
 
     @Override
-    public void addHistoryEntry(MugHistoryEntry historyEntry) {
+    public void addHistoryEntry(MugHistoryEntity historyEntry) {
         jdbcTemplate.update(
                 """
                         INSERT INTO mug_history (id, mug_id, added_by_user_id, entry, created_at)
@@ -150,8 +150,8 @@ public class MugRepositoryImplementation implements MugRepository {
         );
     }
 
-    private RowMapper<Mug> mugRowMapper() {
-        return (resultSet, rowNum) -> new Mug(
+    private RowMapper<MugEntity> mugRowMapper() {
+        return (resultSet, rowNum) -> new MugEntity(
                 resultSet.getString("id"),
                 resultSet.getString("owner_user_id"),
                 LocalDate.parse(resultSet.getString("purchase_date")),
@@ -163,8 +163,8 @@ public class MugRepositoryImplementation implements MugRepository {
         );
     }
 
-    private RowMapper<MugHistoryEntry> historyRowMapper() {
-        return (resultSet, rowNum) -> new MugHistoryEntry(
+    private RowMapper<MugHistoryEntity> historyRowMapper() {
+        return (resultSet, rowNum) -> new MugHistoryEntity(
                 resultSet.getString("id"),
                 resultSet.getString("mug_id"),
                 resultSet.getString("added_by_user_id"),

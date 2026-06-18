@@ -1,5 +1,6 @@
 package com.overmild.mugs.models;
 
+import com.overmild.mugs.models.entities.MugHistoryEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "MugHistoryResponse", description = "Response payload representing a mug history entry")
@@ -15,7 +16,7 @@ public record MugHistoryResponse(
         @Schema(example = "2026-06-16T20:03:11.843827Z")
         String createdAt
 ) {
-    public static MugHistoryResponse from(MugHistoryEntry historyEntry) {
+    public static MugHistoryResponse from(MugHistoryEntity historyEntry) {
         return new MugHistoryResponse(
                 historyEntry.id(),
                 historyEntry.mugId(),

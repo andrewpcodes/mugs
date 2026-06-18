@@ -1,6 +1,8 @@
 package com.overmild.mugs.controllers;
 
 import com.overmild.mugs.models.*;
+import com.overmild.mugs.models.entities.MugEntity;
+import com.overmild.mugs.models.entities.MugHistoryEntity;
 import com.overmild.mugs.services.MugService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -77,7 +79,6 @@ public class MugController {
     }
 
     @PostMapping("/api/mugs")
-    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create mug")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses({
@@ -89,22 +90,22 @@ public class MugController {
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     public MugResponse createMug(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateMugRequest request) {
-        Mug mug = mugService.createMug(
+        MugEntity mugEntity = mugService.createMug(
                 jwt.getSubject(),
                 request.purchaseDate(),
                 request.renewalDate(),
                 request.cost(),
                 request.sizeOunces()
         );
-        return MugResponse.from(mug);
+        return MugResponse.from(mugEntity);
     }
 
     @PutMapping("/api/mugs/{mugId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Update mug")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Mug updated", content = @Content),
+            @ApiResponse(responseCode = "200", description = "Mug updated",
+                    content = @Content(schema = @Schema(implementation = MugResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
@@ -114,19 +115,19 @@ public class MugController {
             @ApiResponse(responseCode = "404", description = "Mug not found",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public void updateMug(
+    public MugResponse updateMug(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable @NotBlank String mugId,
             @Valid @RequestBody UpdateMugRequest request
     ) {
-        mugService.updateMug(
+        return MugResponse.from(mugService.updateMug(
                 mugId,
                 jwt.getSubject(),
                 request.purchaseDate(),
                 request.renewalDate(),
                 request.cost(),
                 request.sizeOunces()
-        );
+        ));
     }
 
     @DeleteMapping("/api/mugs/{mugId}")
@@ -167,7 +168,7 @@ public class MugController {
             @PathVariable @NotBlank String mugId,
             @Valid @RequestBody AddMugHistoryRequest request
     ) {
-        MugHistoryEntry historyEntry = mugService.addHistoryEntry(mugId, jwt.getSubject(), request.entry());
+        MugHistoryEntity historyEntry = mugService.addHistoryEntry(mugId, jwt.getSubject(), request.entry());
         return MugHistoryResponse.from(historyEntry);
     }
 }

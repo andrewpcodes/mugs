@@ -1,7 +1,7 @@
 package com.overmild.mugs.repositories;
 
-import com.overmild.mugs.models.Mug;
-import com.overmild.mugs.models.MugHistoryEntry;
+import com.overmild.mugs.models.entities.MugEntity;
+import com.overmild.mugs.models.entities.MugHistoryEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,15 +9,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MugRepository {
-    Optional<Mug> findById(String mugId);
+    Optional<MugEntity> findById(String mugId);
 
-    List<MugHistoryEntry> findHistoryByMugId(String mugId);
+    List<MugHistoryEntity> findHistoryByMugId(String mugId);
 
-    List<Mug> findByOwnerUserId(String ownerUserId);
+    List<MugEntity> findByOwnerUserId(String ownerUserId);
 
-    void createMug(Mug mug);
+    void createMug(MugEntity mugEntity);
 
-    boolean updateMugByOwner(
+    Optional<MugEntity> updateMugByOwner(
             String mugId,
             String ownerUserId,
             LocalDate purchaseDate,
@@ -28,5 +28,5 @@ public interface MugRepository {
 
     boolean deleteMugByOwner(String mugId, String ownerUserId);
 
-    void addHistoryEntry(MugHistoryEntry historyEntry);
+    void addHistoryEntry(MugHistoryEntity historyEntry);
 }

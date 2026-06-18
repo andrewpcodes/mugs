@@ -1,5 +1,6 @@
 package com.overmild.mugs.models;
 
+import com.overmild.mugs.models.entities.MugEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -20,14 +21,14 @@ public record MugResponse(
         @Schema(example = "12.0")
         BigDecimal sizeOunces
 ) {
-    public static MugResponse from(Mug mug) {
+    public static MugResponse from(MugEntity mugEntity) {
         return new MugResponse(
-                mug.id(),
-                mug.ownerUserId(),
-                mug.purchaseDate(),
-                mug.renewalDate(),
-                mug.cost(),
-                mug.sizeOunces()
+                mugEntity.id(),
+                mugEntity.ownerUserId(),
+                mugEntity.purchaseDate(),
+                mugEntity.renewalDate(),
+                mugEntity.cost(),
+                mugEntity.sizeOunces()
         );
     }
 }

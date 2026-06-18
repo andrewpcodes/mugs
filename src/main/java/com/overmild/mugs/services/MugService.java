@@ -1,8 +1,9 @@
 package com.overmild.mugs.services;
 
-import com.overmild.mugs.models.Mug;
-import com.overmild.mugs.models.MugHistoryEntry;
+import com.overmild.mugs.models.entities.MugEntity;
+import com.overmild.mugs.models.entities.MugHistoryEntity;
 import com.overmild.mugs.repositories.MugRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,24 +13,23 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class MugService {
+
     private final MugRepository mugRepository;
 
-    public MugService(MugRepository mugRepository) {
-        this.mugRepository = mugRepository;
-    }
-
     @Transactional(readOnly = true)
-    public Mug getMugById(String mugId) {
+    public MugEntity getMugById(String mugId) {
         return mugRepository.findById(mugId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mug not found"));
     }
 
     @Transactional(readOnly = true)
-    public List<MugHistoryEntry> getMugHistoryByMugId(String mugId) {
+    public List<MugHistoryEntity> getMugHistoryByMugId(String mugId) {
         if (mugRepository.findById(mugId).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mug not found");
         }
@@ -37,7 +37,7 @@ public class MugService {
     }
 
     @Transactional(readOnly = true)
-    public List<Mug> getMugsByOwnerId(String ownerId, String requesterUserId) {
+    public List<MugEntity> getMugsByOwnerId(String ownerId, String requesterUserId) {
         if (!ownerId.equals(requesterUserId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can only read mugs for your own ownerId");
         }
@@ -45,9 +45,9 @@ public class MugService {
     }
 
     @Transactional
-    public Mug createMug(String creatorUserId, LocalDate purchaseDate, LocalDate renewalDate, BigDecimal cost, BigDecimal sizeOunces) {
+    public MugEntity createMug(String creatorUserId, LocalDate purchaseDate, LocalDate renewalDate, BigDecimal cost, BigDecimal sizeOunces) {
         Instant now = Instant.now();
-        Mug mug = new Mug(
+        MugEntity mugEntity = new MugEntity(
                 UUID.randomUUID().toString(),
                 creatorUserId,
                 purchaseDate,
@@ -57,12 +57,12 @@ public class MugService {
                 now,
                 now
         );
-        mugRepository.createMug(mug);
-        return mug;
+        mugRepository.createMug(mugEntity);
+        return mugEntity;
     }
 
     @Transactional
-    public void updateMug(
+    public MugEntity updateMug(
             String mugId,
             String requesterUserId,
             LocalDate purchaseDate,
@@ -70,7 +70,7 @@ public class MugService {
             BigDecimal cost,
             BigDecimal sizeOunces
     ) {
-        boolean updated = mugRepository.updateMugByOwner(
+        Optional<MugEntity> updated = mugRepository.updateMugByOwner(
                 mugId,
                 requesterUserId,
                 purchaseDate,
@@ -78,9 +78,12 @@ public class MugService {
                 cost,
                 sizeOunces
         );
-        if (!updated) {
+
+        if (updated.isEmpty()) {
             throw notFoundOrForbidden(mugId, requesterUserId);
         }
+
+        return updated.get();
     }
 
     @Transactional
@@ -92,20 +95,23 @@ public class MugService {
     }
 
     @Transactional
-    public MugHistoryEntry addHistoryEntry(String mugId, String requesterUserId, String entry) {
-        Mug mug = mugRepository.findById(mugId)
+    public MugHistoryEntity addHistoryEntry(String mugId, String requesterUserId, String entry) {
+
+        MugEntity mugEntity = mugRepository.findById(mugId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mug not found"));
-        if (!mug.ownerUserId().equals(requesterUserId)) {
+
+        if (!mugEntity.ownerUserId().equals(requesterUserId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the mug creator can add mug history");
         }
 
-        MugHistoryEntry historyEntry = new MugHistoryEntry(
+        MugHistoryEntity historyEntry = new MugHistoryEntity(
                 UUID.randomUUID().toString(),
                 mugId,
                 requesterUserId,
                 entry,
                 Instant.now()
         );
+
         mugRepository.addHistoryEntry(historyEntry);
         return historyEntry;
     }

@@ -1,8 +1,8 @@
-package com.overmild.mugs.models;
+package com.overmild.mugs.models.entities;
 
 import java.time.Instant;
 
-public record MugHistoryEntry(
+public record MugHistoryEntity(
         String id,
         String mugId,
         String addedByUserId,
