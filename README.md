@@ -1,0 +1,90 @@
+# mugs
+
+Spring Boot API for managing mugs, packaged for Docker and Raspberry Pi deployment.
+
+## Docker run
+
+Build the image:
+
+```bash
+docker build -t mugs:latest .
+```
+
+Run it with a persistent SQLite volume:
+
+```bash
+docker run -d \
+  --name mugs \
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:sqlite:/data/mugs.db \
+  -e SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://jrtcojpgdubbmgsmnhgs.supabase.co/auth/v1 \
+  -e APP_SECURITY_JWT_AUDIENCE=authenticated \
+  -v mugs-data:/data \
+  --restart unless-stopped \
+  mugs:latest
+```
+
+## Docker Compose
+
+Start the app with Compose:
+
+```bash
+docker compose up -d --build
+```
+
+The SQLite database is stored in the `mugs-data` Docker volume at `/data/mugs.db`.
+
+## GitHub Container Registry
+
+This repository is configured to publish Docker images to GitHub Container Registry (GHCR) from GitHub Actions.
+
+Published images use the name:
+
+```text
+ghcr.io/<your-github-organization-or-user>/mugs
+```
+
+Typical tags include:
+
+- `latest` for the default branch
+- the branch name for branch builds
+- the Git commit SHA for traceability
+- release tags like `v1.2.3`
+
+To run the published image on a Raspberry Pi:
+
+```bash
+docker run -d \
+  --name mugs \
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:sqlite:/data/mugs.db \
+  -e SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://jrtcojpgdubbmgsmnhgs.supabase.co/auth/v1 \
+  -e APP_SECURITY_JWT_AUDIENCE=authenticated \
+  -v mugs-data:/data \
+  --restart unless-stopped \
+  ghcr.io/<your-github-organization-or-user>/mugs:latest
+```
+
+## Raspberry Pi notes
+
+- Use a Raspberry Pi OS image with Docker installed.
+- The Dockerfile uses multi-arch base images, so it can run on common Raspberry Pi ARM variants.
+- If you build on another machine and want to target the Pi explicitly, use Docker Buildx:
+
+```bash
+docker buildx build --platform linux/arm64 -t ghcr.io/<your-github-organization-or-user>/mugs:latest --push .
+```
+
+- If you want to publish manually to GHCR, keep the image name in the `ghcr.io/<owner>/mugs` namespace.
+
+## Configuration
+
+Environment variables you may want to set in production:
+
+- `SPRING_DATASOURCE_URL` — defaults to `jdbc:sqlite:/data/mugs.db`
+- `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI` — Supabase or other JWT issuer
+- `APP_SECURITY_JWT_AUDIENCE` — expected JWT audience
+- `SERVER_PORT` — HTTP port, defaults to `8080`
+
+
+
