@@ -86,5 +86,17 @@ Environment variables you may want to set in production:
 - `APP_SECURITY_JWT_AUDIENCE` — expected JWT audience
 - `SERVER_PORT` — HTTP port, defaults to `8080`
 
+## API model generation
 
+The API contract is defined in `api-specification.yml`. This file drives both generated Java models and Swagger UI documentation.
+
+- The generated Java models are written to `build/generated/openapi/src/main/java/com/overmild/mugs/models`.
+- `compileJava` runs `openApiGenerate` automatically, so a normal build always regenerates models from the spec.
+- The same `api-specification.yml` is copied into app static resources at build time and served at `/api-specification.yml` for Swagger UI.
+
+You can run generation directly with:
+
+```bash
+./gradlew openApiGenerate
+```
 

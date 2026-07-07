@@ -1,0 +1,379 @@
+openapi: 3.0.3
+info:
+  title: Mugs REST API
+  version: v1
+  description: API schemas for mug resources and mug history
+tags:
+  - name: Mugs
+    description: Operations for managing mugs and mug history
+paths:
+  /api/mugs/{mugId}:
+    get:
+      tags: [Mugs]
+      summary: Get mug by ID
+      operationId: getMugById
+      parameters:
+        - $ref: '#/components/parameters/mugId'
+      responses:
+        '200':
+          description: Mug returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MugResponse'
+        '404':
+          description: Mug not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags: [Mugs]
+      summary: Update mug
+      operationId: updateMug
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/mugId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMugRequest'
+      responses:
+        '200':
+          description: Mug updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MugResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Mug not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      tags: [Mugs]
+      summary: Delete mug
+      operationId: deleteMug
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/mugId'
+      responses:
+        '204':
+          description: Mug deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Mug not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/mugs/{mugId}/history:
+    get:
+      tags: [Mugs]
+      summary: Get mug history by mug ID
+      operationId: getMugHistoryByMugId
+      parameters:
+        - $ref: '#/components/parameters/mugId'
+      responses:
+        '200':
+          description: Mug history returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MugHistoryResponse'
+        '404':
+          description: Mug not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      tags: [Mugs]
+      summary: Add mug history entry
+      operationId: addMugHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/mugId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMugHistoryRequest'
+      responses:
+        '201':
+          description: History entry created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MugHistoryResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Mug not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/mugs/owners/{ownerId}:
+    get:
+      tags: [Mugs]
+      summary: Get mugs by owner
+      operationId: getMugsByOwnerId
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ownerId'
+      responses:
+        '200':
+          description: Owner mugs returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MugResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /api/mugs:
+    post:
+      tags: [Mugs]
+      summary: Create mug
+      operationId: createMug
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMugRequest'
+      responses:
+        '201':
+          description: Mug created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MugResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    mugId:
+      in: path
+      name: mugId
+      required: true
+      schema:
+        type: string
+      example: f95af6c7-c9c5-44c9-95a4-8520d9f77d84
+    ownerId:
+      in: path
+      name: ownerId
+      required: true
+      schema:
+        type: string
+      example: 1d20f53f-2c6d-49d1-8f36-8eaf2d9f9939
+  schemas:
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+    CreateMugRequest:
+      type: object
+      required:
+        - purchaseDate
+        - renewalDate
+        - cost
+        - sizeOunces
+      properties:
+        purchaseDate:
+          type: string
+          format: date
+          example: "2025-01-15"
+        renewalDate:
+          type: string
+          format: date
+          example: "2026-01-15"
+        cost:
+          type: number
+          minimum: 0
+          example: 18.99
+        sizeOunces:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+          example: 12.0
+    UpdateMugRequest:
+      type: object
+      required:
+        - purchaseDate
+        - renewalDate
+        - cost
+        - sizeOunces
+      properties:
+        purchaseDate:
+          type: string
+          format: date
+          example: "2025-01-15"
+        renewalDate:
+          type: string
+          format: date
+          example: "2026-01-15"
+        cost:
+          type: number
+          minimum: 0
+          example: 21.5
+        sizeOunces:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+          example: 14.0
+    AddMugHistoryRequest:
+      type: object
+      required:
+        - entry
+      properties:
+        entry:
+          type: string
+          minLength: 1
+          example: Replaced lid and cleaned seal
+    MugResponse:
+      type: object
+      required:
+        - id
+        - ownerUserId
+        - purchaseDate
+        - renewalDate
+        - cost
+        - sizeOunces
+      properties:
+        id:
+          type: string
+          example: f95af6c7-c9c5-44c9-95a4-8520d9f77d84
+        ownerUserId:
+          type: string
+          example: 1d20f53f-2c6d-49d1-8f36-8eaf2d9f9939
+        purchaseDate:
+          type: string
+          format: date
+          example: "2025-01-15"
+        renewalDate:
+          type: string
+          format: date
+          example: "2026-01-15"
+        cost:
+          type: number
+          minimum: 0
+          example: 18.99
+        sizeOunces:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+          example: 12.0
+    MugHistoryResponse:
+      type: object
+      required:
+        - id
+        - mugId
+        - addedByUserId
+        - entry
+        - createdAt
+      properties:
+        id:
+          type: string
+          example: 4b551322-7834-4218-bf7f-aa7d27c0f6b1
+        mugId:
+          type: string
+          example: f95af6c7-c9c5-44c9-95a4-8520d9f77d84
+        addedByUserId:
+          type: string
+          example: 1d20f53f-2c6d-49d1-8f36-8eaf2d9f9939
+        entry:
+          type: string
+          example: Replaced lid and cleaned seal
+        createdAt:
+          type: string
+          example: "2026-06-16T20:03:11.843827Z"

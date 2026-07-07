@@ -1,7 +1,9 @@
 plugins {
     id 'java'
+    id 'groovy'
     id 'org.springframework.boot' version '4.0.6'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.15.0'
 }
 
 group = 'com.overmild'
@@ -18,6 +20,37 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    main {
+        java {
+            srcDir "${layout.buildDirectory.get()}/generated/openapi/src/main/java"
+        }
+    }
+}
+
+openApiGenerate {
+    generatorName = 'spring'
+    inputSpec = "$rootDir/api-specification.yml"
+    outputDir = "${layout.buildDirectory.get()}/generated/openapi"
+    modelPackage = 'com.overmild.mugs.models'
+    invokerPackage = 'com.overmild.mugs.openapi'
+    globalProperties = [
+            models         : '',
+            apis           : 'false',
+            supportingFiles: 'false',
+            modelDocs      : 'false',
+            modelTests     : 'false'
+    ]
+    configOptions = [
+            dateLibrary            : 'java8',
+            useJakartaEe           : 'true',
+            useSpringBoot3         : 'true',
+            useBeanValidation      : 'true',
+            openApiNullable        : 'false',
+            hideGenerationTimestamp: 'true'
+    ]
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -25,9 +58,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
     runtimeOnly 'org.xerial:sqlite-jdbc'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-authorization-server-test'
@@ -35,11 +70,25 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.spockframework:spock-core:2.4-groovy-5.0'
+    testImplementation 'org.spockframework:spock-spring:2.4-groovy-5.0'
+    testImplementation 'org.mapstruct:mapstruct:1.6.3'
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.named('compileJava') {
+    dependsOn tasks.named('openApiGenerate')
+}
+
+tasks.named('processResources') {
+    from("$rootDir/api-specification.yml") {
+        into 'static'
+    }
 }
