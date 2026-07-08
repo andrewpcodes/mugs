@@ -1,6 +1,7 @@
 package com.overmild.mugs.controllers
 
 import com.overmild.mugs.configs.SecurityConfig
+import com.overmild.mugs.configs.CorsConfig
 import com.overmild.mugs.mappers.MugMapper
 import com.overmild.mugs.models.MugHistoryResponse
 import com.overmild.mugs.models.MugResponse
@@ -11,6 +12,7 @@ import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -26,12 +28,13 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(controllers = MugController)
-@Import(SecurityConfig)
+@Import([SecurityConfig, CorsConfig])
 class MugControllerSpec extends Specification {
 
     @Autowired
@@ -266,6 +269,20 @@ class MugControllerSpec extends Specification {
         0 * _
         result.andExpect(status().isCreated())
                 .andExpect(jsonPath('$.id').value("hist-1"))
+    }
+
+    def "allows cors preflight from the vite dev origin"() {
+        when:
+        def result = mockMvc.perform(
+                options("/api/mugs")
+                        .header(HttpHeaders.ORIGIN, "http://localhost:5173")
+                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+        )
+
+        then:
+        0 * _
+        result.andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:5173"))
     }
 
     private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtSubject(String subject) {
