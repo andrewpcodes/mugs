@@ -23,11 +23,16 @@ public class MugService {
     private final MugRepository mugRepository;
 
     @Transactional(readOnly = true)
+    public List<MugEntity> getAllMugs() {
+        return mugRepository.getAllMugs()
+                .orElse(List.of());
+    }
+
+    @Transactional(readOnly = true)
     public MugEntity getMugById(String mugId) {
         return mugRepository.findById(mugId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mug not found"));
     }
-
     @Transactional(readOnly = true)
     public List<MugHistoryEntity> getMugHistoryByMugId(String mugId) {
         if (mugRepository.findById(mugId).isEmpty()) {

@@ -26,6 +26,14 @@ public class MugController {
     private final MugService mugService;
     private final MugMapper mugMapper;
 
+    @GetMapping("/api/mugs")
+    public List<MugResponse> getMugs() {
+        log.info("Received request for all mugs");
+        return mugService.getAllMugs().stream()
+                .map(mugMapper::toMugResponse)
+                .toList();
+    }
+
     @GetMapping("/api/mugs/{mugId}")
     public MugResponse getMugById(@PathVariable @NotBlank String mugId) {
         log.info("Received request for mug id={}", mugId);

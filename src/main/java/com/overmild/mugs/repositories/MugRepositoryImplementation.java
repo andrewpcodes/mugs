@@ -29,6 +29,18 @@ public class MugRepositoryImplementation implements MugRepository {
     }
 
     @Override
+    public Optional<List<MugEntity>> getAllMugs() {
+        return Optional.of(jdbcTemplate.query(
+                """
+                        SELECT id, owner_user_id, purchase_date, renewal_date, cost, size_ounces, created_at, updated_at
+                        FROM mugs
+                        ORDER BY created_at DESC
+                        """,
+                mugRowMapper()
+        ));
+    }
+
+    @Override
     public Optional<MugEntity> findById(String mugId) {
         List<MugEntity> mugEntities = jdbcTemplate.query(
                 """

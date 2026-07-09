@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MugRepository {
+    Optional<List<MugEntity>> getAllMugs();
+
     Optional<MugEntity> findById(String mugId);
 
     List<MugHistoryEntity> findHistoryByMugId(String mugId);
