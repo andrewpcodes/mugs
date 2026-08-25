@@ -179,7 +179,7 @@ class MugControllerSpec extends Specification {
         ) >> entity
         1 * mugMapper.toMugResponse(entity) >> response
         0 * _
-        result.andExpect(status().isOk())
+        result.andExpect(status().isCreated())
                 .andExpect(jsonPath('$.id').value("mug-1"))
     }
 

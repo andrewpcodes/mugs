@@ -57,6 +57,7 @@ public class MugController {
     }
 
     @PostMapping("/api/mugs")
+    @ResponseStatus(HttpStatus.CREATED)
     public MugResponse createMug(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateMugRequest request) {
         MugEntity mugEntity = mugService.createMug(
                 jwt.getSubject(),
