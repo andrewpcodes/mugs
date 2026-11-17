@@ -49,7 +49,7 @@ endpoint, 4 changed schemas, 2 new schemas
 | II. Test-Backed Behavior | Success, 400, 401, 403, 404 covered by Spock; no external services | PASS | PASS: controller, service, and repository specs planned (research R8); fixed `Clock`; mocked JWTs |
 | III. Secure by Default | Writes need JWT; new routes authenticated; owner check in service | PASS | PASS: `POST .../fills` matched by existing `/api/mugs/**` authenticated rule; owner check in `MugService`; existing gap fixed: `GET /api/mugs` now requires login as the contract declares (R9) |
 | IV. Layered Simplicity | controller → service → repository; JDBC; no new frameworks | PASS | PASS: `Clock` bean is a small config class; Flyway added for versioned migrations, justified in R1 |
-| V. Portable Deployment | Idempotent, additive schema changes; env-var config | PASS | PASS: Flyway baseline + additive V2 migration (R1); UTC everywhere, local zone `APP_TIME_LOCAL_ZONE` defaulting to America/New_York (R5) |
+| V. Portable Deployment | Idempotent, additive schema changes; env-var config | PASS | PASS: Flyway baseline + additive V2 migration (R1); UTC everywhere, no server-side local zone (R5) |
 
 No violations, so Complexity Tracking is empty.
 
@@ -77,12 +77,12 @@ api-specification.yml                         # + addMugFill, AddMugFillRequest,
                                               #   fields on MugResponse/UpdateMugRequest/
                                               #   AddMugHistoryRequest/MugHistoryResponse
 src/main/resources/
-├── application.properties                    # + app.time.local-zone
+├── application.properties                    # + spring.flyway.baseline-*
 └── db/migration/V1__initial_schema.sql, V2__add_mug_nickname_and_history_price.sql
-Dockerfile, docker-compose.yml, README.md     # + TZ=UTC; document APP_TIME_LOCAL_ZONE
+Dockerfile, docker-compose.yml, README.md     # + TZ=UTC
 src/main/java/com/overmild/mugs/
 ├── configs/
-│   ├── ClockConfig.java                      # NEW: UTC Clock + local ZoneId (America/New_York)
+│   ├── ClockConfig.java                      # NEW: UTC Clock
 │   ├── SecurityConfig.java                   # GET /api/mugs requires login (R9)
 ├── controllers/
 │   └── MugController.java                    # + POST /api/mugs/{mugId}/fills; pass nickname, price

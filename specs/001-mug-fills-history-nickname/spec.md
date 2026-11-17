@@ -15,7 +15,7 @@
 - Q: Who should be allowed to record a fill on a mug? → A: Only the mug's owner (no staff/bartender role).
 - Q: Should the price paid be recorded on the fill or on the tasting log entry? → A: On the tasting log entry only; fills have no price.
 - Q: Should the API reject a fill that's larger than the mug's size? → A: Yes; amount must be > 0 and ≤ the mug's size.
-- Q: Which time zone does the app use? → A: GMT/UTC for all stored and returned times; New York time (America/New_York) wherever a local date is needed (a fill's "today").
+- Q: Which time zone does the app use? → A: GMT/UTC for all stored and returned times; New York time (America/New_York) wherever a local date is needed (a fill's "today"). *(Superseded: the frontend always sends the user's local `fillDate`; the server has no local zone.)*
 - Q: Should the API localize timestamps using a time-zone request header? → A: No; the API always returns UTC and the frontend converts to the user's local time.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -151,8 +151,7 @@ the nickname is returned; clear it and confirm it is gone.
 - **FR-002**: The fill count MUST equal the number of fills recorded for that mug. Tasting
   log entries MUST NOT count as fills.
 - **FR-002a**: The mug's owner MUST be able to record a fill on their mug, giving the amount
-  poured in ounces (required) and the fill date (optional, defaults to today's date in New York
-  time).
+  poured in ounces (required) and the fill date (required; the user's local date).
 - **FR-002b**: Recording a fill MUST require login, and MUST be rejected as forbidden for
   anyone other than the mug's owner.
 - **FR-002c**: Fill amount MUST be greater than 0 and no more than the mug's size; fill date
@@ -207,10 +206,9 @@ the nickname is returned; clear it and confirm it is gone.
 
 - Scope is limited to `plan.md` items 1–3 (fill count, tasting log fields including price,
   nickname), plus a way to record fills, which the fill count needs. Owner name, mug number, tier, and stickers (items 4–7) are out of scope.
-- All timestamps are stored and returned in GMT/UTC. "Today" for fill dates means the current
-  date in New York (America/New_York), which handles daylight saving automatically.
+- All timestamps are stored and returned in GMT/UTC. The server has no local time zone.
 - The API does not localize times; the frontend converts UTC timestamps to the user's local time
-  for display, and sends `fillDate` explicitly when the user's local day should be used.
+  for display, and always sends `fillDate` as the user's local date.
 - Price is in a single currency (the club's local currency); no currency field is needed.
 - Price is optional on new entries so existing clients that don't send it keep working.
 - Only the mug's owner records fills (matching who can add tasting log entries); staff or

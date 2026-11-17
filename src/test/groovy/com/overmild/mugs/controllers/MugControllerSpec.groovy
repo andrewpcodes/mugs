@@ -357,11 +357,11 @@ class MugControllerSpec extends Specification {
                 post("/api/mugs/{mugId}/fills", "mug-1")
                         .with(jwtSubject("owner-1"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content('{"amountOunces":12}')
+                        .content('{"amountOunces":12,"fillDate":"2026-11-16"}')
         )
 
         then:
-        1 * mugService.addFill("mug-1", "owner-1", new BigDecimal("12"), null) >> fillEntity
+        1 * mugService.addFill("mug-1", "owner-1", new BigDecimal("12"), LocalDate.parse("2026-11-16")) >> fillEntity
         1 * mugMapper.toMugFillResponse(fillEntity) >> fillResponse
         0 * _
         result.andExpect(status().isCreated())
@@ -387,7 +387,12 @@ class MugControllerSpec extends Specification {
         result.andExpect(status().isBadRequest())
 
         where:
-        body << ['{"amountOunces":0}', '{"amountOunces":-1}', '{"fillDate":"2026-11-16"}']
+        body << [
+                '{"amountOunces":0,"fillDate":"2026-11-16"}',
+                '{"amountOunces":-1,"fillDate":"2026-11-16"}',
+                '{"fillDate":"2026-11-16"}',
+                '{"amountOunces":12}'
+        ]
     }
 
     def "requires login to record a fill"() {
@@ -395,7 +400,7 @@ class MugControllerSpec extends Specification {
         def result = mockMvc.perform(
                 post("/api/mugs/{mugId}/fills", "mug-1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content('{"amountOunces":12}')
+                        .content('{"amountOunces":12,"fillDate":"2026-11-16"}')
         )
 
         then:
@@ -409,11 +414,11 @@ class MugControllerSpec extends Specification {
                 post("/api/mugs/{mugId}/fills", "mug-1")
                         .with(jwtSubject("owner-1"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content('{"amountOunces":12}')
+                        .content('{"amountOunces":12,"fillDate":"2026-11-16"}')
         )
 
         then:
-        1 * mugService.addFill("mug-1", "owner-1", new BigDecimal("12"), null) >> {
+        1 * mugService.addFill("mug-1", "owner-1", new BigDecimal("12"), LocalDate.parse("2026-11-16")) >> {
             throw new ResponseStatusException(status, "rejected")
         }
         0 * _

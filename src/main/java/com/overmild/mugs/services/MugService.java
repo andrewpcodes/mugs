@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +29,6 @@ public class MugService {
 
     private final MugRepository mugRepository;
     private final Clock clock;
-    private final ZoneId localZone;
 
     @Transactional(readOnly = true)
     public List<MugEntity> getAllMugs() {
@@ -150,6 +148,9 @@ public class MugService {
         if (amountOunces == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "amountOunces is required");
         }
+        if (fillDate == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "fillDate is required");
+        }
         MugEntity mugEntity = mugRepository.findById(mugId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mug not found"));
 
@@ -160,8 +161,7 @@ public class MugService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "amountOunces must not exceed the mug's sizeOunces");
         }
 
-        LocalDate effectiveFillDate = fillDate == null ? LocalDate.now(clock.withZone(localZone)) : fillDate;
-        if (effectiveFillDate.isAfter(LocalDate.now(clock.withZone(LATEST_ZONE)))) {
+        if (fillDate.isAfter(LocalDate.now(clock.withZone(LATEST_ZONE)))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "fillDate must not be in the future");
         }
 
@@ -169,7 +169,7 @@ public class MugService {
                 UUID.randomUUID().toString(),
                 mugId,
                 requesterUserId,
-                effectiveFillDate,
+                fillDate,
                 amountOunces,
                 Instant.now(clock)
         );

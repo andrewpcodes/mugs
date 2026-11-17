@@ -40,7 +40,7 @@ AUTH="Authorization: Bearer $TOKEN"
 | # | Action | Expected |
 |---|--------|----------|
 | 1 | `POST $API` (12 oz mug) | 201/200, `fillCount: 0`, `nickname: null`. Save `MUG` id. |
-| 2 | `POST $API/$MUG/fills` `{"amountOunces":12}` | 201, `fillDate` = today in New York, `createdAt` ends in `Z` (UTC), `filledByUserId` = `USER_ID` |
+| 2 | `POST $API/$MUG/fills` `{"amountOunces":12,"fillDate":"<today>"}` | 201, `fillDate` = the date sent, `createdAt` ends in `Z` (UTC), `filledByUserId` = `USER_ID` |
 | 3 | `GET $API/$MUG` (no auth) | `fillCount: 1` |
 | 4 | `POST $API/$MUG/fills` `{"amountOunces":13}` | 400 (over mug size) |
 | 5 | `POST $API/$MUG/fills` `{"amountOunces":0}` | 400 |

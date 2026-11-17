@@ -477,6 +477,7 @@ components:
       type: object
       required:
         - amountOunces
+        - fillDate
       properties:
         amountOunces:
           type: number
@@ -488,9 +489,8 @@ components:
           type: string
           format: date
           description: >-
-            Defaults to today's date in New York time (America/New_York). Must not be after
-            today's date in the furthest-ahead time zone (UTC+14), so any user can send their own
-            local date.
+            The user's local date. Must not be after today's date in the furthest-ahead time zone
+            (UTC+14), so a user anywhere can send their own local date.
           example: "2026-11-16"
     MugFillResponse:
       type: object

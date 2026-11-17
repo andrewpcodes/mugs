@@ -85,8 +85,6 @@ Environment variables you may want to set in production:
 - `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI` — Supabase or other JWT issuer
 - `APP_SECURITY_JWT_AUDIENCE` — expected JWT audience
 - `SERVER_PORT` — HTTP port, defaults to `8080`
-- `APP_TIME_LOCAL_ZONE` — time zone that decides which calendar day counts as "today" for fill
-  dates, defaults to `America/New_York`
 - `TZ` — set to `UTC` in the image; all API timestamps are stored and returned in UTC, and clients
   convert them to local time for display
 

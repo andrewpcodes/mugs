@@ -57,6 +57,7 @@ components:
       type: object
       required:
         - amountOunces
+        - fillDate
       properties:
         amountOunces:
           type: number
@@ -67,7 +68,7 @@ components:
         fillDate:
           type: string
           format: date
-          description: Defaults to today's date in New York time (America/New_York); must not be after today in UTC+14.
+          description: The user's local date; must not be after today in UTC+14.
           example: "2026-11-16"
 
     # New

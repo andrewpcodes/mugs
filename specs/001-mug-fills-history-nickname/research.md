@@ -34,7 +34,7 @@ open design questions the spec leaves to planning.
 ## R3. Recording a fill
 
 - **Decision**: New operation `POST /api/mugs/{mugId}/fills` (`addMugFill`), bearer auth,
-  request `AddMugFillRequest { amountOunces (required, > 0), fillDate (optional date) }`,
+  request `AddMugFillRequest { amountOunces (required, > 0), fillDate (required date) }`,
   response `201 MugFillResponse`. Mirrors `POST /api/mugs/{mugId}/history`.
 - **Rationale**: Follows the existing sub-resource pattern; owner-only check reuses the history
   logic (spec clarification Q1).
@@ -58,24 +58,22 @@ open design questions the spec leaves to planning.
 
 ## R5. What "today" means
 
-- **Decision** (per user direction: GMT everywhere, New York for local time):
+- **Decision** (revised: the frontend handles local time zones):
   - A `java.time.Clock` bean returns `Clock.systemUTC()`; every `Instant` (`createdAt`,
     `updatedAt`) comes from it and is stored/returned in UTC.
-  - A `ZoneId` bean `localZone` reads `app.time.local-zone`
-    (`${APP_TIME_LOCAL_ZONE:America/New_York}` in `application.properties`).
-  - A missing fill date defaults to `LocalDate.now(clock.withZone(localZone))`. A fill date is
-    rejected only if it is after today in UTC+14, the furthest-ahead zone, so users east of New
-    York can send their own local date (revised after code review).
+  - `fillDate` is required: the frontend sends the user's local date. The server has no local
+    zone setting.
+  - A fill date is rejected only if it is after today in UTC+14, the furthest-ahead zone, so any
+    user's local date is accepted.
   - The container runs with `TZ=UTC` (Dockerfile and Compose) so JVM defaults and logs are also
     GMT; code never relies on the JVM default zone.
-- **Rationale**: One unambiguous zone for stored data; a fixed, configurable local zone for the
-  one place a calendar date is needed (Principle V); fully testable with `Clock.fixed`
-  (Principle II).
-- **Alternatives considered**: UTC for "today" as well: a 9 pm New York fill would default to
-  tomorrow's date. Host/JVM default zone: varies by machine. A time-zone request header (e.g.
-  `X-Time-Zone`) to localize responses and/or "today": rejected by the user. Responses stay UTC
-  so they are identical for every caller (simpler caching and tests), and the frontend localizes
-  for display; it can send `fillDate` explicitly to use the user's own local day.
+- **Rationale**: One unambiguous zone for stored data; the client is the only party that knows
+  the user's calendar date. Fully testable with `Clock.fixed` (Principle II).
+- **Alternatives considered**: A server-side local zone (`APP_TIME_LOCAL_ZONE`, default
+  America/New_York) to default a missing `fillDate`: the original choice, dropped because it
+  gave users outside New York the wrong default date. UTC for "today": a 9 pm New York fill would
+  default to tomorrow's date. A time-zone request header (e.g. `X-Time-Zone`): rejected by the
+  user. Responses stay UTC so they are identical for every caller.
 
 ## R6. Nickname normalization
 

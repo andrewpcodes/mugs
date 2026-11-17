@@ -9,20 +9,18 @@ import spock.lang.Specification
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZoneOffset
 
 class MugServiceSpec extends Specification {
 
-    // 03:00 UTC on Nov 17 is still 22:00 on Nov 16 in New York.
+    // 03:00 UTC on Nov 17: still Nov 16 in New York, already 17:00 on Nov 17 in UTC+14.
     static final Clock CLOCK = Clock.fixed(Instant.parse("2026-11-17T03:00:00Z"), ZoneOffset.UTC)
-    static final ZoneId LOCAL_ZONE = ZoneId.of("America/New_York")
 
     MugRepository mugRepository = Mock()
     MugService mugService
 
     def setup() {
-        mugService = new MugService(mugRepository, CLOCK, LOCAL_ZONE)
+        mugService = new MugService(mugRepository, CLOCK)
     }
 
     private static MugEntity mug(String ownerUserId = "owner-1", String sizeOunces = "12") {
@@ -59,9 +57,9 @@ class MugServiceSpec extends Specification {
         created.updatedAt() == Instant.parse("2026-11-17T03:00:00Z")
     }
 
-    def "addFill saves a fill dated today in New York when no date is given"() {
+    def "addFill saves a fill with the given date"() {
         when:
-        def fill = mugService.addFill("mug-1", "owner-1", new BigDecimal("12"), null)
+        def fill = mugService.addFill("mug-1", "owner-1", new BigDecimal("12"), LocalDate.parse("2026-11-16"))
 
         then:
         1 * mugRepository.findById("mug-1") >> Optional.of(mug())
@@ -95,14 +93,19 @@ class MugServiceSpec extends Specification {
         fill.fillDate() == LocalDate.parse("2026-11-17")
     }
 
-    def "addFill rejects a missing amount without touching the repository"() {
+    def "addFill rejects a missing #field without touching the repository"() {
         when:
-        mugService.addFill("mug-1", "owner-1", null, null)
+        mugService.addFill("mug-1", "owner-1", amount, fillDate)
 
         then:
         0 * _
         def ex = thrown(ResponseStatusException)
         ex.statusCode == HttpStatus.BAD_REQUEST
+
+        where:
+        field          | amount               | fillDate
+        "amount"       | null                 | LocalDate.parse("2026-11-16")
+        "fill date"    | new BigDecimal("12") | null
     }
 
     def "addFill rejects #reason"() {
@@ -117,10 +120,10 @@ class MugServiceSpec extends Specification {
 
         where:
         reason                       | requester | amount | fillDate                       | existing  || status
-        "more than the mug holds"    | "owner-1" | "12.5" | null                           | mug()     || HttpStatus.BAD_REQUEST
+        "more than the mug holds"    | "owner-1" | "12.5" | LocalDate.parse("2026-11-16")  | mug()     || HttpStatus.BAD_REQUEST
         "a date future everywhere"   | "owner-1" | "12"   | LocalDate.parse("2026-11-18")  | mug()     || HttpStatus.BAD_REQUEST
-        "someone other than owner"   | "other-1" | "12"   | null                           | mug()     || HttpStatus.FORBIDDEN
-        "a mug that does not exist"  | "owner-1" | "12"   | null                           | null      || HttpStatus.NOT_FOUND
+        "someone other than owner"   | "other-1" | "12"   | LocalDate.parse("2026-11-16")  | mug()     || HttpStatus.FORBIDDEN
+        "a mug that does not exist"  | "owner-1" | "12"   | LocalDate.parse("2026-11-16")  | null      || HttpStatus.NOT_FOUND
     }
 
     def "addHistoryEntry saves price #price"() {

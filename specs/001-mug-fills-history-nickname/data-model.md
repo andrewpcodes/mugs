@@ -18,7 +18,7 @@ Changes are additive. Existing columns, tables, and relationships are unchanged.
 | id | `id` | TEXT PK | UUID, server-generated |
 | mugId | `mug_id` | TEXT FK → `mugs.id` | Mug must exist (404 otherwise); `ON DELETE CASCADE` (existing) |
 | filledByUserId | `filled_by_user_id` | TEXT | JWT subject; must equal mug owner (403 otherwise) |
-| fillDate | `fill_date` | TEXT (ISO date) | Optional on input, defaults to today's date in America/New_York; must not be after it |
+| fillDate | `fill_date` | TEXT (ISO date) | Required on input (the user's local date); must not be after today in UTC+14 |
 | amountOunces | `amount_ounces` | NUMERIC | > 0 and ≤ the mug's `size_ounces` |
 | createdAt | `created_at` | TEXT (ISO instant, UTC) | Server-generated |
 

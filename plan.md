@@ -11,9 +11,8 @@ The current `api-specification.yml` is minimal — several app features are brok
 
 > **Implemented.** `fillCount` is the number of recorded fills, not tasting log entries. Record a
 > fill with the new `POST /api/mugs/{mugId}/fills` (owner only, body `{"amountOunces": 12, "fillDate": "2026-11-16"}`;
-> `amountOunces` must be > 0 and ≤ the mug's `sizeOunces`; `fillDate` is optional). Send `fillDate`
-> as the user's local date (any date up to today in UTC+14 is accepted): when omitted the server uses
-> today's date in New York.
+> `amountOunces` must be > 0 and ≤ the mug's `sizeOunces`; `fillDate` is required). Send `fillDate`
+> as the user's local date; any date up to today in UTC+14 is accepted.
 
 The tasting log count, tier badge, milestone unlocks, and savings calculation all depend on `fillCount`. Currently it is always `0` in the frontend because the API does not return it.
 
