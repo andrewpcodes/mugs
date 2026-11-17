@@ -1,0 +1,146 @@
+# Changes to api-specification.yml for feature 001-mug-fills-history-nickname.
+# Additive only: existing operations and required fields are unchanged.
+# Merge into api-specification.yml before implementation (Principle I).
+
+paths:
+  /api/mugs/{mugId}/fills:
+    post:
+      tags: [Mugs]
+      summary: Record a fill on a mug
+      operationId: addMugFill
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/mugId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMugFillRequest'
+      responses:
+        '201':
+          description: Fill recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MugFillResponse'
+        '400':
+          description: Invalid request (amount <= 0 or above mug size, or fill date in the future)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden (not the mug owner)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Mug not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    # New
+    AddMugFillRequest:
+      type: object
+      required:
+        - amountOunces
+      properties:
+        amountOunces:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+          description: Ounces poured; must not exceed the mug's sizeOunces.
+          example: 12.0
+        fillDate:
+          type: string
+          format: date
+          description: Defaults to today's date in New York time (America/New_York); must not be after today in UTC+14.
+          example: "2026-11-16"
+
+    # New
+    MugFillResponse:
+      type: object
+      required:
+        - id
+        - mugId
+        - filledByUserId
+        - fillDate
+        - amountOunces
+        - createdAt
+      properties:
+        id:
+          type: string
+          example: 9c0e0d3a-2a0f-4b0b-9a43-0f7f6f3b6a11
+        mugId:
+          type: string
+          example: f95af6c7-c9c5-44c9-95a4-8520d9f77d84
+        filledByUserId:
+          type: string
+          example: 1d20f53f-2c6d-49d1-8f36-8eaf2d9f9939
+        fillDate:
+          type: string
+          format: date
+          example: "2026-11-16"
+        amountOunces:
+          type: number
+          example: 12.0
+        createdAt:
+          type: string
+          description: UTC timestamp (ISO 8601, `Z` suffix). Clients convert to local time for display.
+          example: "2026-11-16T20:03:11.843827Z"
+
+    # Changed: add optional nickname
+    UpdateMugRequest:
+      properties:
+        nickname:
+          type: string
+          nullable: true
+          description: Trimmed by the server, then at most 50 characters. Absent or null keeps the current nickname; empty or blank clears it.
+          example: The Hazy One
+
+    # Changed: add optional price
+    AddMugHistoryRequest:
+      properties:
+        price:
+          type: number
+          minimum: 0
+          nullable: true
+          description: Price paid, at most 2 decimal places.
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+          example: 6.50
+
+    # Changed: add fillCount (required) and nickname (optional)
+    MugResponse:
+      required:
+        - fillCount        # appended to the existing required list
+      properties:
+        fillCount:
+          type: integer
+          minimum: 0
+          example: 12
+        nickname:
+          type: string
+          nullable: true
+          example: The Hazy One
+
+    # Changed: add optional price (id, mugId, addedByUserId, entry, createdAt already present)
+    MugHistoryResponse:
+      properties:
+        price:
+          type: number
+          minimum: 0
+          nullable: true
+          example: 6.50

@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/api-specification.yml", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/mugs/owners/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/mugs").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/mugs/**").permitAll()
                         .requestMatchers("/api/mugs/**").authenticated()
                         .anyRequest().denyAll()

@@ -1,5 +1,6 @@
 package com.overmild.mugs.models.entities;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 public record MugHistoryEntity(
@@ -7,6 +8,7 @@ public record MugHistoryEntity(
         String mugId,
         String addedByUserId,
         String entry,
-        Instant createdAt
+        Instant createdAt,
+        BigDecimal price
 ) {
 }

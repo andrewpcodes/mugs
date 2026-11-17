@@ -7,7 +7,13 @@ The current `api-specification.yml` is minimal — several app features are brok
 
 ## 🔴 Required — App is broken without these
 
-### 1. Return `fillCount` in `MugResponse`
+### 1. Return `fillCount` in `MugResponse` ✅ Done
+
+> **Implemented.** `fillCount` is the number of recorded fills, not tasting log entries. Record a
+> fill with the new `POST /api/mugs/{mugId}/fills` (owner only, body `{"amountOunces": 12, "fillDate": "2026-11-16"}`;
+> `amountOunces` must be > 0 and ≤ the mug's `sizeOunces`; `fillDate` is optional). Send `fillDate`
+> as the user's local date (any date up to today in UTC+14 is accepted): when omitted the server uses
+> today's date in New York.
 
 The tasting log count, tier badge, milestone unlocks, and savings calculation all depend on `fillCount`. Currently it is always `0` in the frontend because the API does not return it.
 
@@ -24,7 +30,11 @@ MugResponse:
 
 ---
 
-### 2. Load tasting history on the Roost page
+### 2. Load tasting history on the Roost page ✅ Done
+
+> **Implemented.** `MugHistoryResponse` returns `id`, `mugId`, `addedByUserId`, `entry`, `price`
+> (null when not given), `createdAt`. Send an optional `price` (≥ 0, at most 2 decimals) in
+> `POST /api/mugs/{mugId}/history`.
 
 The frontend has a Tasting Log section on the mug detail page (`/roost/:mugId`) but `GET /api/mugs/{mugId}/history` is never called on page load — `history` always starts as `[]`. The frontend needs this endpoint to populate the log.
 
@@ -57,7 +67,10 @@ MugHistoryResponse:
 
 ## 🟡 Important — UI shows blank/placeholder values without these
 
-### 3. Return `nickname` in `MugResponse` and accept it in `UpdateMugRequest`
+### 3. Return `nickname` in `MugResponse` and accept it in `UpdateMugRequest` ✅ Done
+
+> **Implemented.** Max 50 characters, trimmed by the server. `PUT` keeps the current nickname when
+> `nickname` is omitted or null; send `""` (or blank) to clear it. `nickname` is `null` when unset.
 
 `nickname` is displayed prominently on the mug card and the Roost detail page. Without it the frontend falls back to `"{sizeOz}oz Mug"`. Owners can set a nickname via the Modify panel but it only saves locally — the API ignores it because `nickname` is not in `UpdateMugRequest`.
 
@@ -155,13 +168,20 @@ UpdateMugRequest:
 
 ---
 
+## Notes for the frontend
+
+- All timestamps (`createdAt`, `updatedAt`) are UTC (ISO 8601 with `Z`). Convert to the user's
+  local time for display.
+- `GET /api/mugs` (all mugs) now requires a logged-in user, matching the API spec. The single mug
+  and its history remain public.
+
 ## Summary
 
 | Field / Change                    | Endpoint                                        | Priority        |
 |-----------------------------------|-------------------------------------------------|-----------------|
-| `fillCount`                       | `MugResponse`                                   | 🔴 Required     |
-| `price` on history entries        | `MugHistoryResponse`                            | 🔴 Required     |
-| `nickname` (read + write)         | `MugResponse` + `UpdateMugRequest`              | 🟡 Important    |
+| `fillCount`                       | `MugResponse`                                   | ✅ Done         |
+| `price` on history entries        | `MugHistoryResponse`                            | ✅ Done         |
+| `nickname` (read + write)         | `MugResponse` + `UpdateMugRequest`              | ✅ Done         |
 | `ownerName`                       | `MugResponse`                                   | 🟡 Important    |
 | `number`                          | `MugResponse` (+ optionally `CreateMugRequest`) | 🟡 Important    |
 | `tier` (pre-computed)             | `MugResponse`                                   | 🟢 Nice to have |

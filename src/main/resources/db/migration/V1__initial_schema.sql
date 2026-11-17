@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS mug_owners
+CREATE TABLE mug_owners
 (
     id         TEXT PRIMARY KEY,
     username   TEXT NOT NULL UNIQUE,
@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS mug_owners
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS mugs
+CREATE TABLE mugs
 (
     id            TEXT PRIMARY KEY,
     owner_user_id TEXT    NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS mugs
     FOREIGN KEY (owner_user_id) REFERENCES mug_owners (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS mug_history
+CREATE TABLE mug_history
 (
     id               TEXT PRIMARY KEY,
     mug_id           TEXT NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS mug_history
     FOREIGN KEY (mug_id) REFERENCES mugs (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS mug_fills
+CREATE TABLE mug_fills
 (
     id               TEXT PRIMARY KEY,
     mug_id           TEXT NOT NULL,
@@ -42,6 +42,6 @@ CREATE TABLE IF NOT EXISTS mug_fills
 );
 
 
-CREATE INDEX IF NOT EXISTS idx_mugs_owner_user_id ON mugs (owner_user_id);
-CREATE INDEX IF NOT EXISTS idx_mug_history_mug_id ON mug_history (mug_id);
-CREATE INDEX IF NOT EXISTS idx_mug_fills_mug_id ON mug_fills (mug_id);
+CREATE INDEX idx_mugs_owner_user_id ON mugs (owner_user_id);
+CREATE INDEX idx_mug_history_mug_id ON mug_history (mug_id);
+CREATE INDEX idx_mug_fills_mug_id ON mug_fills (mug_id);

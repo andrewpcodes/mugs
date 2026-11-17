@@ -11,3 +11,10 @@ out
 .gitignore
 README.md
 
+
+.DS_Store
+*.log
+.env*
+specs
+.specify
+.claude

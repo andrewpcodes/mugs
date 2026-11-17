@@ -1,0 +1,3 @@
+ALTER TABLE mugs ADD COLUMN nickname TEXT;
+
+ALTER TABLE mug_history ADD COLUMN price NUMERIC;

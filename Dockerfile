@@ -14,6 +14,7 @@ FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 ENV JAVA_TOOL_OPTIONS=""
+ENV TZ=UTC
 ENV SPRING_DATASOURCE_URL=jdbc:sqlite:/data/mugs.db
 
 RUN useradd --create-home --uid 10001 appuser \

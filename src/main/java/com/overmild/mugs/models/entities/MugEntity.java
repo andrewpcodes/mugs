@@ -12,6 +12,8 @@ public record MugEntity(
         BigDecimal cost,
         BigDecimal sizeOunces,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String nickname,
+        int fillCount
 ) {
 }

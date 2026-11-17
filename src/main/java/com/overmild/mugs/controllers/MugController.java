@@ -3,6 +3,7 @@ package com.overmild.mugs.controllers;
 import com.overmild.mugs.mappers.MugMapper;
 import com.overmild.mugs.models.*;
 import com.overmild.mugs.models.entities.MugEntity;
+import com.overmild.mugs.models.entities.MugFillEntity;
 import com.overmild.mugs.models.entities.MugHistoryEntity;
 import com.overmild.mugs.services.MugService;
 import jakarta.validation.Valid;
@@ -80,7 +81,8 @@ public class MugController {
                 request.getPurchaseDate(),
                 request.getRenewalDate(),
                 request.getCost(),
-                request.getSizeOunces()
+                request.getSizeOunces(),
+                request.getNickname()
         ));
     }
 
@@ -97,7 +99,19 @@ public class MugController {
             @PathVariable @NotBlank String mugId,
             @Valid @RequestBody AddMugHistoryRequest request
     ) {
-        MugHistoryEntity historyEntry = mugService.addHistoryEntry(mugId, jwt.getSubject(), request.getEntry());
+        MugHistoryEntity historyEntry = mugService.addHistoryEntry(mugId, jwt.getSubject(), request.getEntry(), request.getPrice());
         return mugMapper.toMugHistoryResponse(historyEntry);
+    }
+
+    @PostMapping("/api/mugs/{mugId}/fills")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MugFillResponse addFill(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable @NotBlank String mugId,
+            @Valid @RequestBody AddMugFillRequest request
+    ) {
+        log.info("Received request to add fill mugId={} requester={}", mugId, jwt.getSubject());
+        MugFillEntity fill = mugService.addFill(mugId, jwt.getSubject(), request.getAmountOunces(), request.getFillDate());
+        return mugMapper.toMugFillResponse(fill);
     }
 }
