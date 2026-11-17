@@ -1,5 +1,9 @@
 package com.overmild.mugs.services;
 
+import com.overmild.mugs.mappers.MugMapper;
+import com.overmild.mugs.models.MugFillResponse;
+import com.overmild.mugs.models.MugHistoryResponse;
+import com.overmild.mugs.models.MugResponse;
 import com.overmild.mugs.models.entities.MugEntity;
 import com.overmild.mugs.models.entities.MugFillEntity;
 import com.overmild.mugs.models.entities.MugHistoryEntity;
@@ -16,7 +20,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,37 +31,47 @@ public class MugService {
     private static final ZoneOffset LATEST_ZONE = ZoneOffset.ofHours(14);
 
     private final MugRepository mugRepository;
+    private final MugMapper mugMapper;
     private final Clock clock;
 
     @Transactional(readOnly = true)
-    public List<MugEntity> getAllMugs() {
+    public List<MugResponse> getAllMugs() {
         return mugRepository.getAllMugs()
-                .orElse(List.of());
+                .orElse(List.of())
+                .stream()
+                .map(mugMapper::toMugResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public MugEntity getMugById(String mugId) {
+    public MugResponse getMugById(String mugId) {
         return mugRepository.findById(mugId)
+                .map(mugMapper::toMugResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mug not found"));
     }
+
     @Transactional(readOnly = true)
-    public List<MugHistoryEntity> getMugHistoryByMugId(String mugId) {
+    public List<MugHistoryResponse> getMugHistoryByMugId(String mugId) {
         if (mugRepository.findById(mugId).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mug not found");
         }
-        return mugRepository.findHistoryByMugId(mugId);
+        return mugRepository.findHistoryByMugId(mugId).stream()
+                .map(mugMapper::toMugHistoryResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<MugEntity> getMugsByOwnerId(String ownerId, String requesterUserId) {
+    public List<MugResponse> getMugsByOwnerId(String ownerId, String requesterUserId) {
         if (!ownerId.equals(requesterUserId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can only read mugs for your own ownerId");
         }
-        return mugRepository.findByOwnerUserId(ownerId);
+        return mugRepository.findByOwnerUserId(ownerId).stream()
+                .map(mugMapper::toMugResponse)
+                .toList();
     }
 
     @Transactional
-    public MugEntity createMug(String creatorUserId, LocalDate purchaseDate, LocalDate renewalDate, BigDecimal cost, BigDecimal sizeOunces) {
+    public MugResponse createMug(String creatorUserId, LocalDate purchaseDate, LocalDate renewalDate, BigDecimal cost, BigDecimal sizeOunces) {
         Instant now = Instant.now(clock);
         MugEntity mugEntity = new MugEntity(
                 UUID.randomUUID().toString(),
@@ -73,11 +86,11 @@ public class MugService {
                 0
         );
         mugRepository.createMug(mugEntity);
-        return mugEntity;
+        return mugMapper.toMugResponse(mugEntity);
     }
 
     @Transactional
-    public MugEntity updateMug(
+    public MugResponse updateMug(
             String mugId,
             String requesterUserId,
             LocalDate purchaseDate,
@@ -93,7 +106,7 @@ public class MugService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "nickname must be at most 50 characters after trimming");
         }
 
-        Optional<MugEntity> updated = mugRepository.updateMugByOwner(
+        return mugRepository.updateMugByOwner(
                 mugId,
                 requesterUserId,
                 purchaseDate,
@@ -103,13 +116,9 @@ public class MugService {
                 normalizedNickname,
                 keepNickname,
                 Instant.now(clock)
-        );
-
-        if (updated.isEmpty()) {
-            throw notFoundOrForbidden(mugId, requesterUserId);
-        }
-
-        return updated.get();
+        )
+                .map(mugMapper::toMugResponse)
+                .orElseThrow(() -> notFoundOrForbidden(mugId, requesterUserId));
     }
 
     @Transactional
@@ -121,7 +130,7 @@ public class MugService {
     }
 
     @Transactional
-    public MugHistoryEntity addHistoryEntry(String mugId, String requesterUserId, String entry, BigDecimal price) {
+    public MugHistoryResponse addHistoryEntry(String mugId, String requesterUserId, String entry, BigDecimal price) {
 
         MugEntity mugEntity = mugRepository.findById(mugId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mug not found"));
@@ -140,11 +149,11 @@ public class MugService {
         );
 
         mugRepository.addHistoryEntry(historyEntry);
-        return historyEntry;
+        return mugMapper.toMugHistoryResponse(historyEntry);
     }
 
     @Transactional
-    public MugFillEntity addFill(String mugId, String requesterUserId, BigDecimal amountOunces, LocalDate fillDate) {
+    public MugFillResponse addFill(String mugId, String requesterUserId, BigDecimal amountOunces, LocalDate fillDate) {
         if (amountOunces == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "amountOunces is required");
         }
@@ -174,7 +183,7 @@ public class MugService {
                 Instant.now(clock)
         );
         mugRepository.addFill(fill);
-        return fill;
+        return mugMapper.toMugFillResponse(fill);
     }
 
     private ResponseStatusException notFoundOrForbidden(String mugId, String requesterUserId) {

@@ -2,13 +2,9 @@ package com.overmild.mugs.controllers
 
 import com.overmild.mugs.configs.SecurityConfig
 import com.overmild.mugs.configs.CorsConfig
-import com.overmild.mugs.mappers.MugMapper
 import com.overmild.mugs.models.MugFillResponse
 import com.overmild.mugs.models.MugHistoryResponse
 import com.overmild.mugs.models.MugResponse
-import com.overmild.mugs.models.entities.MugEntity
-import com.overmild.mugs.models.entities.MugFillEntity
-import com.overmild.mugs.models.entities.MugHistoryEntity
 import com.overmild.mugs.services.MugService
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,7 +21,6 @@ import org.springframework.web.server.ResponseStatusException
 import spock.lang.Specification
 
 import java.math.BigDecimal
-import java.time.Instant
 import java.time.LocalDate
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
@@ -49,25 +44,10 @@ class MugControllerSpec extends Specification {
     MugService mugService = Mock()
 
     @SpringBean
-    MugMapper mugMapper = Mock()
-
-    @SpringBean
     JwtDecoder jwtDecoder = Mock()
 
     def "gets mug by id"() {
         given:
-        def entity = new MugEntity(
-                "mug-1",
-                "owner-1",
-                LocalDate.parse("2025-01-15"),
-                LocalDate.parse("2026-01-15"),
-                new BigDecimal("18.99"),
-                new BigDecimal("12.0"),
-                Instant.parse("2026-01-01T00:00:00Z"),
-                Instant.parse("2026-01-02T00:00:00Z"),
-                null,
-                0
-        )
         def response = new MugResponse()
                 .id("mug-1")
                 .ownerUserId("owner-1")
@@ -82,8 +62,7 @@ class MugControllerSpec extends Specification {
         def result = mockMvc.perform(get("/api/mugs/{mugId}", "mug-1"))
 
         then:
-        1 * mugService.getMugById("mug-1") >> entity
-        1 * mugMapper.toMugResponse(entity) >> response
+        1 * mugService.getMugById("mug-1") >> response
         0 * _
         result.andExpect(status().isOk())
                 .andExpect(jsonPath('$.id').value("mug-1"))
@@ -93,14 +72,6 @@ class MugControllerSpec extends Specification {
 
     def "gets mug history by mug id"() {
         given:
-        def historyEntity = new MugHistoryEntity(
-                "hist-1",
-                "mug-1",
-                "owner-1",
-                "Replaced lid",
-                Instant.parse("2026-01-03T00:00:00Z"),
-                null
-        )
         def historyResponse = new MugHistoryResponse()
                 .id("hist-1")
                 .mugId("mug-1")
@@ -113,8 +84,7 @@ class MugControllerSpec extends Specification {
         def result = mockMvc.perform(get("/api/mugs/{mugId}/history", "mug-1"))
 
         then:
-        1 * mugService.getMugHistoryByMugId("mug-1") >> [historyEntity]
-        1 * mugMapper.toMugHistoryResponse(historyEntity) >> historyResponse
+        1 * mugService.getMugHistoryByMugId("mug-1") >> [historyResponse]
         0 * _
         result.andExpect(status().isOk())
                 .andExpect(jsonPath('$[0].id').value("hist-1"))
@@ -127,18 +97,6 @@ class MugControllerSpec extends Specification {
 
     def "gets mugs by owner id for authenticated user"() {
         given:
-        def entity = new MugEntity(
-                "mug-1",
-                "owner-1",
-                LocalDate.parse("2025-01-15"),
-                LocalDate.parse("2026-01-15"),
-                new BigDecimal("18.99"),
-                new BigDecimal("12.0"),
-                Instant.parse("2026-01-01T00:00:00Z"),
-                Instant.parse("2026-01-02T00:00:00Z"),
-                null,
-                0
-        )
         def response = new MugResponse()
                 .id("mug-1")
                 .ownerUserId("owner-1")
@@ -155,8 +113,7 @@ class MugControllerSpec extends Specification {
         )
 
         then:
-        1 * mugService.getMugsByOwnerId("owner-1", "owner-1") >> [entity]
-        1 * mugMapper.toMugResponse(entity) >> response
+        1 * mugService.getMugsByOwnerId("owner-1", "owner-1") >> [response]
         0 * _
         result.andExpect(status().isOk())
                 .andExpect(jsonPath('$[0].id').value("mug-1"))
@@ -165,18 +122,6 @@ class MugControllerSpec extends Specification {
 
     def "creates mug for authenticated user"() {
         given:
-        def entity = new MugEntity(
-                "mug-1",
-                "owner-1",
-                LocalDate.parse("2025-01-15"),
-                LocalDate.parse("2026-01-15"),
-                new BigDecimal("18.99"),
-                new BigDecimal("12.0"),
-                Instant.parse("2026-01-01T00:00:00Z"),
-                Instant.parse("2026-01-02T00:00:00Z"),
-                null,
-                0
-        )
         def response = new MugResponse()
                 .id("mug-1")
                 .ownerUserId("owner-1")
@@ -200,8 +145,7 @@ class MugControllerSpec extends Specification {
                 LocalDate.parse("2026-01-15"),
                 new BigDecimal("18.99"),
                 new BigDecimal("12.0")
-        ) >> entity
-        1 * mugMapper.toMugResponse(entity) >> response
+        ) >> response
         0 * _
         result.andExpect(status().isOk())
                 .andExpect(jsonPath('$.id').value("mug-1"))
@@ -209,18 +153,6 @@ class MugControllerSpec extends Specification {
 
     def "updates mug for authenticated user"() {
         given:
-        def entity = new MugEntity(
-                "mug-1",
-                "owner-1",
-                LocalDate.parse("2025-01-15"),
-                LocalDate.parse("2026-01-15"),
-                new BigDecimal("21.50"),
-                new BigDecimal("14.0"),
-                Instant.parse("2026-01-01T00:00:00Z"),
-                Instant.parse("2026-01-02T00:00:00Z"),
-                null,
-                0
-        )
         def response = new MugResponse()
                 .id("mug-1")
                 .ownerUserId("owner-1")
@@ -246,8 +178,7 @@ class MugControllerSpec extends Specification {
                 new BigDecimal("21.5"),
                 new BigDecimal("14.0"),
                 null
-        ) >> entity
-        1 * mugMapper.toMugResponse(entity) >> response
+        ) >> response
         0 * _
         result.andExpect(status().isOk())
                 .andExpect(jsonPath('$.cost').value(21.5))
@@ -268,14 +199,6 @@ class MugControllerSpec extends Specification {
 
     def "adds mug history for authenticated user"() {
         given:
-        def historyEntity = new MugHistoryEntity(
-                "hist-1",
-                "mug-1",
-                "owner-1",
-                "Replaced lid",
-                Instant.parse("2026-01-03T00:00:00Z"),
-                null
-        )
         def historyResponse = new MugHistoryResponse()
                 .id("hist-1")
                 .mugId("mug-1")
@@ -292,8 +215,7 @@ class MugControllerSpec extends Specification {
         )
 
         then:
-        1 * mugService.addHistoryEntry("mug-1", "owner-1", "Replaced lid", null) >> historyEntity
-        1 * mugMapper.toMugHistoryResponse(historyEntity) >> historyResponse
+        1 * mugService.addHistoryEntry("mug-1", "owner-1", "Replaced lid", null) >> historyResponse
         0 * _
         result.andExpect(status().isCreated())
                 .andExpect(jsonPath('$.id').value("hist-1"))
@@ -309,26 +231,11 @@ class MugControllerSpec extends Specification {
     }
 
     def "lists all mugs for authenticated user"() {
-        given:
-        def entity = new MugEntity(
-                "mug-1",
-                "owner-1",
-                LocalDate.parse("2025-01-15"),
-                LocalDate.parse("2026-01-15"),
-                new BigDecimal("18.99"),
-                new BigDecimal("12.0"),
-                Instant.parse("2026-01-01T00:00:00Z"),
-                Instant.parse("2026-01-02T00:00:00Z"),
-                null,
-                3
-        )
-
         when:
         def result = mockMvc.perform(get("/api/mugs").with(jwtSubject("owner-1")))
 
         then:
-        1 * mugService.getAllMugs() >> [entity]
-        1 * mugMapper.toMugResponse(entity) >> new MugResponse().id("mug-1").fillCount(3)
+        1 * mugService.getAllMugs() >> [new MugResponse().id("mug-1").fillCount(3)]
         0 * _
         result.andExpect(status().isOk())
                 .andExpect(jsonPath('$[0].fillCount').value(3))
@@ -336,14 +243,6 @@ class MugControllerSpec extends Specification {
 
     def "records a fill for authenticated user"() {
         given:
-        def fillEntity = new MugFillEntity(
-                "fill-1",
-                "mug-1",
-                "owner-1",
-                LocalDate.parse("2026-11-16"),
-                new BigDecimal("12"),
-                Instant.parse("2026-11-17T03:00:00Z")
-        )
         def fillResponse = new MugFillResponse()
                 .id("fill-1")
                 .mugId("mug-1")
@@ -361,8 +260,7 @@ class MugControllerSpec extends Specification {
         )
 
         then:
-        1 * mugService.addFill("mug-1", "owner-1", new BigDecimal("12"), LocalDate.parse("2026-11-16")) >> fillEntity
-        1 * mugMapper.toMugFillResponse(fillEntity) >> fillResponse
+        1 * mugService.addFill("mug-1", "owner-1", new BigDecimal("12"), LocalDate.parse("2026-11-16")) >> fillResponse
         0 * _
         result.andExpect(status().isCreated())
                 .andExpect(jsonPath('$.id').value("fill-1"))
@@ -431,14 +329,6 @@ class MugControllerSpec extends Specification {
 
     def "adds mug history with a price"() {
         given:
-        def historyEntity = new MugHistoryEntity(
-                "hist-2",
-                "mug-1",
-                "owner-1",
-                "Hazy IPA",
-                Instant.parse("2026-11-16T20:00:00Z"),
-                new BigDecimal("6.50")
-        )
         def historyResponse = new MugHistoryResponse()
                 .id("hist-2")
                 .entry("Hazy IPA")
@@ -453,8 +343,7 @@ class MugControllerSpec extends Specification {
         )
 
         then:
-        1 * mugService.addHistoryEntry("mug-1", "owner-1", "Hazy IPA", new BigDecimal("6.50")) >> historyEntity
-        1 * mugMapper.toMugHistoryResponse(historyEntity) >> historyResponse
+        1 * mugService.addHistoryEntry("mug-1", "owner-1", "Hazy IPA", new BigDecimal("6.50")) >> historyResponse
         0 * _
         result.andExpect(status().isCreated())
                 .andExpect(jsonPath('$.price').value(6.5))
@@ -475,20 +364,6 @@ class MugControllerSpec extends Specification {
     }
 
     def "updates mug nickname for authenticated user"() {
-        given:
-        def entity = new MugEntity(
-                "mug-1",
-                "owner-1",
-                LocalDate.parse("2025-01-15"),
-                LocalDate.parse("2026-01-15"),
-                new BigDecimal("21.50"),
-                new BigDecimal("14.0"),
-                Instant.parse("2026-01-01T00:00:00Z"),
-                Instant.parse("2026-01-02T00:00:00Z"),
-                "The Hazy One",
-                0
-        )
-
         when:
         def result = mockMvc.perform(
                 put("/api/mugs/{mugId}", "mug-1")
@@ -498,8 +373,7 @@ class MugControllerSpec extends Specification {
         )
 
         then:
-        1 * mugService.updateMug("mug-1", "owner-1", _, _, _, _, "The Hazy One") >> entity
-        1 * mugMapper.toMugResponse(entity) >> new MugResponse().id("mug-1").nickname("The Hazy One")
+        1 * mugService.updateMug("mug-1", "owner-1", _, _, _, _, "The Hazy One") >> new MugResponse().id("mug-1").nickname("The Hazy One")
         0 * _
         result.andExpect(status().isOk())
                 .andExpect(jsonPath('$.nickname').value("The Hazy One"))
@@ -518,8 +392,7 @@ class MugControllerSpec extends Specification {
         )
 
         then:
-        1 * mugService.updateMug("mug-1", "owner-1", _, _, _, _, padded) >> null
-        1 * mugMapper.toMugResponse(null) >> new MugResponse().id("mug-1")
+        1 * mugService.updateMug("mug-1", "owner-1", _, _, _, _, padded) >> new MugResponse().id("mug-1")
         0 * _
         result.andExpect(status().isOk())
     }

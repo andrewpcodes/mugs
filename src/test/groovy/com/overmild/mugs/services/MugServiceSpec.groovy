@@ -1,7 +1,9 @@
 package com.overmild.mugs.services
 
+import com.overmild.mugs.mappers.MugMapper
 import com.overmild.mugs.models.entities.MugEntity
 import com.overmild.mugs.repositories.MugRepository
+import org.mapstruct.factory.Mappers
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import spock.lang.Specification
@@ -20,7 +22,7 @@ class MugServiceSpec extends Specification {
     MugService mugService
 
     def setup() {
-        mugService = new MugService(mugRepository, CLOCK)
+        mugService = new MugService(mugRepository, Mappers.getMapper(MugMapper), CLOCK)
     }
 
     private static MugEntity mug(String ownerUserId = "owner-1", String sizeOunces = "12") {
@@ -49,12 +51,15 @@ class MugServiceSpec extends Specification {
         )
 
         then:
-        1 * mugRepository.createMug({ it.ownerUserId() == "owner-1" })
+        1 * mugRepository.createMug({
+            it.ownerUserId() == "owner-1" &&
+                    it.createdAt() == Instant.parse("2026-11-17T03:00:00Z") &&
+                    it.updatedAt() == Instant.parse("2026-11-17T03:00:00Z")
+        })
         0 * _
-        created.fillCount() == 0
-        created.nickname() == null
-        created.createdAt() == Instant.parse("2026-11-17T03:00:00Z")
-        created.updatedAt() == Instant.parse("2026-11-17T03:00:00Z")
+        created.ownerUserId == "owner-1"
+        created.fillCount == 0
+        created.nickname == null
     }
 
     def "addFill saves a fill with the given date"() {
@@ -65,12 +70,12 @@ class MugServiceSpec extends Specification {
         1 * mugRepository.findById("mug-1") >> Optional.of(mug())
         1 * mugRepository.addFill({ it.fillDate() == LocalDate.parse("2026-11-16") })
         0 * _
-        fill.mugId() == "mug-1"
-        fill.filledByUserId() == "owner-1"
-        fill.fillDate() == LocalDate.parse("2026-11-16")
-        fill.amountOunces() == new BigDecimal("12")
-        fill.createdAt() == Instant.parse("2026-11-17T03:00:00Z")
-        fill.id()
+        fill.mugId == "mug-1"
+        fill.filledByUserId == "owner-1"
+        fill.fillDate == LocalDate.parse("2026-11-16")
+        fill.amountOunces == new BigDecimal("12")
+        fill.createdAt == "2026-11-17T03:00:00Z"
+        fill.id
     }
 
     def "addFill keeps an explicit past date"() {
@@ -80,7 +85,7 @@ class MugServiceSpec extends Specification {
         then:
         1 * mugRepository.findById("mug-1") >> Optional.of(mug())
         1 * mugRepository.addFill(_)
-        fill.fillDate() == LocalDate.parse("2026-11-01")
+        fill.fillDate == LocalDate.parse("2026-11-01")
     }
 
     def "addFill accepts a date that is already today somewhere ahead of New York"() {
@@ -90,7 +95,7 @@ class MugServiceSpec extends Specification {
         then:
         1 * mugRepository.findById("mug-1") >> Optional.of(mug())
         1 * mugRepository.addFill(_)
-        fill.fillDate() == LocalDate.parse("2026-11-17")
+        fill.fillDate == LocalDate.parse("2026-11-17")
     }
 
     def "addFill rejects a missing #field without touching the repository"() {
@@ -134,7 +139,7 @@ class MugServiceSpec extends Specification {
         1 * mugRepository.findById("mug-1") >> Optional.of(mug())
         1 * mugRepository.addHistoryEntry({ it.price() == price })
         0 * _
-        entry.price() == price
+        entry.price == price
 
         where:
         price << [new BigDecimal("6.50"), new BigDecimal("0"), null]

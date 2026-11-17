@@ -1,10 +1,6 @@
 package com.overmild.mugs.controllers;
 
-import com.overmild.mugs.mappers.MugMapper;
 import com.overmild.mugs.models.*;
-import com.overmild.mugs.models.entities.MugEntity;
-import com.overmild.mugs.models.entities.MugFillEntity;
-import com.overmild.mugs.models.entities.MugHistoryEntity;
 import com.overmild.mugs.services.MugService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -25,48 +21,40 @@ import java.util.List;
 public class MugController {
 
     private final MugService mugService;
-    private final MugMapper mugMapper;
 
     @GetMapping("/api/mugs")
     public List<MugResponse> getMugs() {
         log.info("Received request for all mugs");
-        return mugService.getAllMugs().stream()
-                .map(mugMapper::toMugResponse)
-                .toList();
+        return mugService.getAllMugs();
     }
 
     @GetMapping("/api/mugs/{mugId}")
     public MugResponse getMugById(@PathVariable @NotBlank String mugId) {
         log.info("Received request for mug id={}", mugId);
-        return mugMapper.toMugResponse(mugService.getMugById(mugId));
+        return mugService.getMugById(mugId);
     }
 
     @GetMapping("/api/mugs/{mugId}/history")
     public List<MugHistoryResponse> getMugHistoryByMugId(@PathVariable @NotBlank String mugId) {
         log.info("Received request for mug history id={}", mugId);
-        return mugService.getMugHistoryByMugId(mugId).stream()
-                .map(mugMapper::toMugHistoryResponse)
-                .toList();
+        return mugService.getMugHistoryByMugId(mugId);
     }
 
     @GetMapping("/api/mugs/owners/{ownerId}")
     public List<MugResponse> getMugsByOwnerId(@AuthenticationPrincipal Jwt jwt, @PathVariable @NotBlank String ownerId) {
         log.info("Received request for owner mugs ownerId={} requester={}", ownerId, jwt.getSubject());
-        return mugService.getMugsByOwnerId(ownerId, jwt.getSubject()).stream()
-                .map(mugMapper::toMugResponse)
-                .toList();
+        return mugService.getMugsByOwnerId(ownerId, jwt.getSubject());
     }
 
     @PostMapping("/api/mugs")
     public MugResponse createMug(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateMugRequest request) {
-        MugEntity mugEntity = mugService.createMug(
+        return mugService.createMug(
                 jwt.getSubject(),
                 request.getPurchaseDate(),
                 request.getRenewalDate(),
                 request.getCost(),
                 request.getSizeOunces()
         );
-        return mugMapper.toMugResponse(mugEntity);
     }
 
     @PutMapping("/api/mugs/{mugId}")
@@ -75,7 +63,7 @@ public class MugController {
             @PathVariable @NotBlank String mugId,
             @Valid @RequestBody UpdateMugRequest request
     ) {
-        return mugMapper.toMugResponse(mugService.updateMug(
+        return mugService.updateMug(
                 mugId,
                 jwt.getSubject(),
                 request.getPurchaseDate(),
@@ -83,7 +71,7 @@ public class MugController {
                 request.getCost(),
                 request.getSizeOunces(),
                 request.getNickname()
-        ));
+        );
     }
 
     @DeleteMapping("/api/mugs/{mugId}")
@@ -99,8 +87,7 @@ public class MugController {
             @PathVariable @NotBlank String mugId,
             @Valid @RequestBody AddMugHistoryRequest request
     ) {
-        MugHistoryEntity historyEntry = mugService.addHistoryEntry(mugId, jwt.getSubject(), request.getEntry(), request.getPrice());
-        return mugMapper.toMugHistoryResponse(historyEntry);
+        return mugService.addHistoryEntry(mugId, jwt.getSubject(), request.getEntry(), request.getPrice());
     }
 
     @PostMapping("/api/mugs/{mugId}/fills")
@@ -111,7 +98,6 @@ public class MugController {
             @Valid @RequestBody AddMugFillRequest request
     ) {
         log.info("Received request to add fill mugId={} requester={}", mugId, jwt.getSubject());
-        MugFillEntity fill = mugService.addFill(mugId, jwt.getSubject(), request.getAmountOunces(), request.getFillDate());
-        return mugMapper.toMugFillResponse(fill);
+        return mugService.addFill(mugId, jwt.getSubject(), request.getAmountOunces(), request.getFillDate());
     }
 }
